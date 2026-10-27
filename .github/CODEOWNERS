@@ -1,0 +1,12 @@
+# ======================================================
+# REGOLA GENERALE PER IL REPOSITORY
+# ======================================================
+# Qualsiasi modifica al codice richiede l'approvazione dell'admin
+
+* @mgattilabs
+
+# ======================================================
+# OPZIONALE: REGOLE DEDICATE SOLO AL CEO
+# ======================================================
+
+/config/ @paniceri
