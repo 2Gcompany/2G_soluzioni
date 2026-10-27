@@ -1,0 +1,723 @@
+<!doctype html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light">
+<title>Backup Foto</title>
+<style>
+/* ---------- Material Design 3 in CSS puro: ruoli di colore, forme, elevazione, tipografia ---------- */
+:root {
+  /* Colori (tema chiaro, ruoli M3) */
+  --md-primary: #006a60; --md-on-primary: #ffffff; --md-primary-container: #bfeee5; --md-on-primary-container: #00201c;
+  --md-secondary: #4a635f; --md-secondary-container: #cce8e3; --md-on-secondary-container: #05201c;
+  --md-success: #1b6b3a; --md-on-success: #ffffff; --md-success-container: #cff2d8; --md-on-success-container: #00210d;
+  --md-warning: #7a5900; --md-warning-container: #ffe9b8; --md-on-warning-container: #261900;
+  --md-error: #af3b32; --md-on-error: #ffffff; --md-error-container: #ffe0da; --md-on-error-container: #410002;
+  --md-surface: #f4fbf9; --md-surface-container-lowest: #ffffff; --md-surface-container-low: #eef5f3;
+  --md-surface-container: #e9efed; --md-surface-container-high: #e3e9e7; --md-surface-container-highest: #dde4e2;
+  --md-on-surface: #161d1c; --md-on-surface-variant: #3f4947; --md-outline: #6f7977; --md-outline-variant: #bec9c6;
+  --md-inverse-surface: #2b3231; --md-inverse-on-surface: #ecf2f0; --md-inverse-primary: #83d6ca;
+  --md-focus: #0b57d0; --md-scrim: rgb(0 0 0 / .32);
+  /* Forme */
+  --md-shape-sm: 8px; --md-shape-md: 12px; --md-shape-lg: 16px; --md-shape-xl: 28px; --md-shape-full: 999px;
+  /* Elevazione: livello tonale (colore del contenitore) + ombra leggera */
+  --md-elevation-1: 0 1px 2px rgb(0 0 0 / .10), 0 1px 3px 1px rgb(0 0 0 / .06);
+  --md-elevation-3: 0 1px 3px rgb(0 0 0 / .12), 0 4px 8px 3px rgb(0 0 0 / .09);
+  /* Movimento */
+  --md-ease: cubic-bezier(0.2, 0, 0, 1); --md-dur: 200ms;
+  /* Tipografia (scala M3, ingrandita: base 18px) */
+  --md-font: Roboto, system-ui, "Segoe UI", sans-serif;
+  --md-mono: ui-monospace, "SF Mono", Consolas, Menlo, monospace;
+  --md-display-large: 400 clamp(3.75rem, 17vw, 5.5rem)/1 var(--md-font);
+  --md-headline-large: 400 clamp(1.75rem, 5vw, 2.25rem)/1.25 var(--md-font);
+  --md-headline-medium: 400 2rem/1.25 var(--md-font);
+  --md-headline-small: 400 1.5rem/1.33 var(--md-font);
+  --md-title-large: 500 1.375rem/1.3 var(--md-font);
+  --md-title-medium: 500 1.125rem/1.5 var(--md-font);
+  --md-body-large: 400 1.125rem/1.6 var(--md-font);
+  --md-body-medium: 400 1rem/1.5 var(--md-font);
+  --md-label-large: 500 1rem/1.25 var(--md-font);
+}
+
+/* ---------- Base ---------- */
+*, *::before, *::after { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+body { margin: 0; background: var(--md-surface); color: var(--md-on-surface); font: var(--md-body-large); }
+.wrap { max-width: 860px; margin: 0 auto; padding: 0 20px; }
+h1 { font: var(--md-headline-large); margin: 0.6em 0 0.3em; }
+h2 { font: var(--md-headline-small); margin: 0 0 0.4em; }
+h1:focus { outline: none; }
+p { margin: 0 0 1em; }
+.lead, .muted { color: var(--md-on-surface-variant); }
+.lead { max-width: 60ch; }
+.sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+:focus-visible { outline: 3px solid var(--md-focus); outline-offset: 3px; }
+.icon { width: 24px; height: 24px; flex: none; }
+
+/* Top app bar (a tutta larghezza, contenuto nella colonna centrale) */
+header.top { display: flex; align-items: center; gap: 12px; min-height: 64px; padding: 0 max(20px, calc(50% - 410px)); background: var(--md-surface-container); }
+.logo { display: grid; place-items: center; width: 40px; height: 40px; border-radius: 50%; background: var(--md-primary); color: var(--md-on-primary); }
+header.top b { font: var(--md-title-large); }
+main { padding-bottom: 72px; }
+.enter > * { animation: enter .25s var(--md-ease) backwards; }
+@keyframes enter { from { opacity: 0; transform: translateY(8px); } }
+
+/* ---------- Bottoni: outlined (base), filled, filled-tonal, text ---------- */
+.btn { position: relative; overflow: hidden; display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 48px; padding: 0 24px;
+  border: 1px solid var(--md-outline); border-radius: var(--md-shape-full); background: transparent; color: var(--md-primary);
+  font: var(--md-label-large); cursor: pointer; text-decoration: none; }
+/* state layer: hover 8%, focus e pressed 10% */
+.btn::before { content: ""; position: absolute; inset: 0; background: currentColor; opacity: 0; transition: opacity var(--md-dur) var(--md-ease); }
+.btn:hover:not(:disabled)::before { opacity: .08; }
+.btn:focus-visible::before, .btn:active:not(:disabled)::before { opacity: .1; }
+.btn-primary { background: var(--md-primary); border-color: transparent; color: var(--md-on-primary); }
+.btn-tonal { background: var(--md-secondary-container); border-color: transparent; color: var(--md-on-secondary-container); }
+.btn-danger { background: var(--md-error-container); border-color: transparent; color: var(--md-on-error-container); }
+.btn-text { border-color: transparent; padding: 0 12px; }
+.btn-big { min-height: 56px; padding: 0 32px; font: var(--md-title-medium); }
+.btn:disabled { background: color-mix(in srgb, var(--md-on-surface) 12%, transparent); border-color: transparent; color: color-mix(in srgb, var(--md-on-surface) 38%, transparent); cursor: not-allowed; }
+.actions { display: flex; flex-wrap: wrap; gap: 12px; justify-content: space-between; margin-top: 36px; }
+.actions .group { display: flex; flex-wrap: wrap; gap: 12px; }
+
+/* ---------- Indicatore dei passi ---------- */
+.steps { list-style: none; margin: 24px 0 0; padding: 0; display: flex; align-items: center; }
+.steps li { display: flex; align-items: center; gap: 10px; color: var(--md-on-surface-variant); font: var(--md-label-large); white-space: nowrap; }
+.steps li:not(:last-child) { flex: 1; }
+.steps li:not(:last-child)::after { content: ""; flex: 1; height: 2px; margin: 0 10px; background: var(--md-outline-variant); }
+.steps li b { width: 40px; height: 40px; border-radius: 50%; display: grid; place-items: center; flex: none; font-weight: 500;
+  border: 1px solid var(--md-outline); transition: background var(--md-dur) var(--md-ease); }
+.steps li span { display: none; }
+.steps li[aria-current="step"] { color: var(--md-on-surface); }
+.steps li[aria-current="step"] b { background: var(--md-primary); border-color: var(--md-primary); color: var(--md-on-primary); }
+.steps li[aria-current="step"] span { display: inline; }
+.steps li.done b { background: var(--md-primary-container); border-color: transparent; color: var(--md-on-primary-container); }
+.steps li.done::after { background: var(--md-primary); }
+@media (min-width: 640px) { .steps li span { display: inline; } }
+
+/* ---------- Schede di scelta: outlined card -> selected; checkbox = switch ---------- */
+fieldset { border: 0; margin: 0; padding: 0; min-width: 0; }
+legend { padding: 0; }
+.choices { display: grid; gap: 12px; margin: 24px 0 0; }
+.choice { position: relative; display: block; }
+.choice input { position: absolute; opacity: 0; width: 100%; height: 100%; margin: 0; cursor: pointer; z-index: 1; }
+.choice-box { position: relative; overflow: hidden; display: flex; align-items: center; gap: 16px; padding: 16px 20px; min-height: 84px;
+  background: var(--md-surface-container-lowest); border: 1px solid var(--md-outline-variant); border-radius: var(--md-shape-lg);
+  transition: background var(--md-dur) var(--md-ease), border-color var(--md-dur) var(--md-ease), box-shadow var(--md-dur) var(--md-ease); }
+.choice-box::after { content: ""; position: absolute; inset: 0; background: var(--md-primary); opacity: 0; pointer-events: none; transition: opacity var(--md-dur) var(--md-ease); }
+.choice:hover .choice-box::after { opacity: .08; }
+.choice input:focus-visible + .choice-box::after { opacity: .1; }
+.choice input:focus-visible + .choice-box { outline: 3px solid var(--md-focus); outline-offset: 3px; }
+.choice input[type="radio"]:checked + .choice-box { background: var(--md-primary-container); border-color: var(--md-primary); box-shadow: 0 0 0 1px var(--md-primary); }
+.choice-icon { display: grid; place-items: center; width: 48px; height: 48px; border-radius: 50%; flex: none;
+  background: var(--md-secondary-container); color: var(--md-on-secondary-container); transition: background var(--md-dur) var(--md-ease); }
+.choice input:checked + .choice-box .choice-icon { background: var(--md-primary); color: var(--md-on-primary); }
+.choice-body { flex: 1; min-width: 0; display: block; }
+.choice-title { display: block; font: var(--md-title-medium); }
+.choice-sub { display: block; color: var(--md-on-surface-variant); font: var(--md-body-medium); }
+.choice-mark { position: relative; width: 24px; height: 24px; border: 2px solid var(--md-outline); border-radius: 50%; display: grid; place-items: center; flex: none; color: transparent;
+  transition: background var(--md-dur) var(--md-ease), border-color var(--md-dur) var(--md-ease); }
+.choice-mark .icon { width: 16px; height: 16px; }
+.choice input:checked + .choice-box .choice-mark { background: var(--md-primary); border-color: var(--md-primary); color: var(--md-on-primary); }
+/* switch: la spunta diventa il cursore */
+.choice input[type="checkbox"] + .choice-box .choice-mark { display: block; width: 52px; height: 32px; border-radius: 16px; background: var(--md-surface-container-highest); }
+.choice input[type="checkbox"] + .choice-box .choice-mark .icon { position: absolute; top: 6px; left: 6px; padding: 0; border-radius: 50%; background: var(--md-outline); color: transparent;
+  transition: all var(--md-dur) var(--md-ease); }
+.choice input[type="checkbox"]:checked + .choice-box .choice-mark { background: var(--md-primary); }
+.choice input[type="checkbox"]:checked + .choice-box .choice-mark .icon { top: 2px; left: 22px; width: 24px; height: 24px; padding: 4px; background: var(--md-on-primary); color: var(--md-primary); }
+.meter { display: block; height: 4px; margin-top: 10px; max-width: 320px; background: var(--md-outline-variant); border-radius: 2px; overflow: hidden; }
+.meter i { display: block; height: 100%; background: var(--md-secondary); }
+
+/* ---------- Avvisi e snackbar ---------- */
+.callout { display: flex; align-items: flex-start; gap: 16px; margin-top: 16px; padding: 16px 20px; border-radius: var(--md-shape-lg); }
+.callout p { margin: 0; }
+.callout p + p { margin-top: 0.5em; }
+.callout-warn { background: var(--md-warning-container); color: var(--md-on-warning-container); }
+.callout-warn > .icon { color: var(--md-warning); }
+.callout-ok { background: var(--md-success-container); color: var(--md-on-success-container); }
+.callout-ok > .icon { color: var(--md-success); }
+.confirm-line { display: flex; gap: 14px; align-items: flex-start; margin-top: 14px; min-height: 48px; cursor: pointer; }
+.confirm-line input { width: 24px; height: 24px; margin: 2px 0 0; accent-color: var(--md-warning); flex: none; }
+.snackbar { display: flex; align-items: center; gap: 12px; margin-top: 16px; padding: 12px 16px; min-height: 48px; border-radius: 4px;
+  background: var(--md-inverse-surface); color: var(--md-inverse-on-surface); box-shadow: var(--md-elevation-3); font: var(--md-body-medium); }
+.snackbar p { margin: 0; }
+.snackbar .icon { color: var(--md-inverse-primary); }
+
+/* ---------- Home ---------- */
+.home-head { display: flex; flex-wrap: wrap; gap: 16px; justify-content: space-between; align-items: end; margin-top: 24px; }
+.copies { list-style: none; margin: 28px 0 0; padding: 0; display: grid; gap: 12px; }
+.copy-row { display: flex; flex-wrap: wrap; gap: 12px 20px; align-items: center; padding: 16px 20px;
+  background: var(--md-surface-container-low); border-radius: var(--md-shape-lg); box-shadow: var(--md-elevation-1); }
+.copy-info { flex: 1 1 320px; min-width: 0; }
+.copy-name { font: var(--md-title-medium); margin: 0 0 2px; }
+.copy-meta { color: var(--md-on-surface-variant); margin: 0; font: var(--md-body-medium); }
+/* badge = assist chip */
+.badge { display: inline-flex; align-items: center; gap: 6px; min-height: 32px; padding: 0 12px; border-radius: var(--md-shape-sm); font: var(--md-label-large); white-space: nowrap; }
+.badge .icon { width: 18px; height: 18px; margin-left: -4px; }
+.badge-ok, .badge-new { background: var(--md-success-container); color: var(--md-on-success-container); }
+.badge-warn { background: var(--md-warning-container); color: var(--md-on-warning-container); }
+.badge-upd { background: var(--md-secondary-container); color: var(--md-on-secondary-container); }
+.badge-del { background: var(--md-error-container); color: var(--md-on-error-container); }
+
+/* ---------- Anteprima ---------- */
+.route { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 12px; margin: 22px 0 0; }
+.route > .icon { color: var(--md-on-surface-variant); }
+.route .pill { display: inline-flex; align-items: center; gap: 8px; min-height: 40px; padding: 0 16px 0 12px; border-radius: var(--md-shape-sm);
+  background: var(--md-secondary-container); color: var(--md-on-secondary-container); font: var(--md-label-large); }
+.stats, .facts { display: grid; grid-template-columns: repeat(auto-fit, minmax(135px, 1fr)); gap: 12px; margin: 24px 0 0; }
+.stat, .facts > div { display: flex; flex-direction: column; margin: 0; padding: 16px; border-radius: var(--md-shape-md); background: var(--md-surface-container-high); }
+.stat dd { margin: 0; font: var(--md-headline-medium); font-variant-numeric: tabular-nums; }
+.stat dt { color: var(--md-on-surface-variant); font: var(--md-body-medium); order: 2; }
+.stat.danger { background: var(--md-error-container); }
+.stat.danger dd { color: var(--md-on-error-container); }
+.disclosure { margin-top: 16px; border: 1px solid var(--md-outline-variant); border-radius: var(--md-shape-lg); background: var(--md-surface-container-lowest); }
+.disclosure > button { all: unset; box-sizing: border-box; position: relative; overflow: hidden; width: 100%; display: flex; align-items: center; gap: 12px; min-height: 56px; padding: 0 20px;
+  cursor: pointer; font: var(--md-title-medium); border-radius: var(--md-shape-lg); }
+.disclosure > button::before { content: ""; position: absolute; inset: 0; background: var(--md-primary); opacity: 0; transition: opacity var(--md-dur) var(--md-ease); }
+.disclosure > button:hover::before { opacity: .08; }
+.disclosure > button:focus-visible { outline: 3px solid var(--md-focus); outline-offset: 3px; }
+.disclosure > button:focus-visible::before { opacity: .1; }
+.disclosure > button .icon { margin-left: auto; color: var(--md-on-surface-variant); transition: transform var(--md-dur) var(--md-ease); }
+.disclosure > button[aria-expanded="true"] .icon { transform: rotate(180deg); }
+.disclosure-body { padding: 4px 20px 20px; }
+.files { list-style: none; margin: 0; padding: 0; }
+.files li { display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 8px 0; border-top: 1px solid var(--md-outline-variant); min-height: 48px; }
+.files code { font-family: var(--md-mono); font-size: 1rem; }
+.deleting { margin-top: 16px; padding: 20px; background: var(--md-error-container); color: var(--md-on-error-container); border-radius: var(--md-shape-lg); }
+.deleting h2 { display: flex; align-items: center; gap: 10px; }
+.deleting h2 .icon { color: var(--md-error); }
+.deleting .muted { color: inherit; }
+.deleting .files li { border-color: color-mix(in srgb, var(--md-error) 30%, transparent); }
+.deleting .badge-del { background: var(--md-surface-container-lowest); }
+pre { margin: 0; padding: 16px; background: var(--md-surface-container-low); color: var(--md-on-surface); border: 1px solid var(--md-outline-variant); border-radius: var(--md-shape-md);
+  overflow-x: auto; font: 0.95rem/1.6 var(--md-mono); white-space: pre-wrap; word-break: break-all; }
+
+/* ---------- Avanzamento: linear progress indicator ---------- */
+.big-percent { font: var(--md-display-large); color: var(--md-primary); margin: 24px 0 16px; font-variant-numeric: tabular-nums; }
+.bar { height: 12px; border-radius: 6px; background: var(--md-secondary-container); overflow: hidden; }
+.bar-fill { position: relative; height: 100%; border-radius: 6px; background: var(--md-primary); overflow: hidden; transition: width .25s linear; }
+.bar.running .bar-fill::after { content: ""; position: absolute; inset: 0; background: linear-gradient(90deg, transparent, rgb(255 255 255 / .3), transparent); animation: shimmer 1.8s var(--md-ease) infinite; }
+@keyframes shimmer { from { transform: translateX(-100%); } to { transform: translateX(100%); } }
+.current-file { margin: 18px 0 0; color: var(--md-on-surface-variant); }
+.current-file code { font-family: var(--md-mono); color: var(--md-on-surface); }
+.facts { grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); }
+.facts dt { color: var(--md-on-surface-variant); font: var(--md-body-medium); }
+.facts dd { margin: 0; font: var(--md-title-large); font-variant-numeric: tabular-nums; }
+.paused-note { margin-top: 16px; }
+
+/* Dialog di conferma, nella pagina */
+.scrim { position: fixed; inset: 0; z-index: 10; display: grid; place-items: center; padding: 24px; background: var(--md-scrim); }
+.dialog { width: 100%; max-width: 560px; max-height: 100%; overflow: auto; padding: 24px; border-radius: var(--md-shape-xl);
+  background: var(--md-surface-container-high); box-shadow: var(--md-elevation-3); animation: enter .25s var(--md-ease) backwards; }
+.dialog p { color: var(--md-on-surface-variant); }
+.dialog .group { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 8px; margin-top: 24px; }
+
+/* ---------- Fine ---------- */
+.hero { display: flex; flex-direction: column; align-items: center; text-align: center; margin-top: 24px; padding: 40px 24px 32px;
+  border-radius: var(--md-shape-xl); background: var(--md-success-container); color: var(--md-on-success-container); }
+.hero.err { background: var(--md-error-container); color: var(--md-on-error-container); }
+.hero h1 { margin-top: 24px; }
+.hero .lead { margin: 0 auto; color: inherit; }
+.hero .callout { width: 100%; max-width: 560px; text-align: left; }
+.hero-icon { display: grid; place-items: center; width: 96px; height: 96px; border-radius: 50%; background: var(--md-success); color: var(--md-on-success);
+  animation: pop .4s var(--md-ease) backwards; }
+.hero.err .hero-icon { background: var(--md-error); color: var(--md-on-error); }
+.hero-icon .icon { width: 56px; height: 56px; }
+@keyframes pop { from { transform: scale(.6); opacity: 0; } }
+.save-box { margin-top: 24px; padding: 20px; background: var(--md-surface-container-lowest); border: 1px solid var(--md-outline-variant); border-radius: var(--md-shape-lg); }
+.save-box label { display: block; font: var(--md-title-medium); margin-bottom: 12px; }
+.save-box .row { display: flex; flex-wrap: wrap; gap: 12px; }
+/* outlined text field (senza etichetta flottante) */
+.save-box input[type="text"] { flex: 1 1 260px; min-height: 56px; padding: 0 16px; font: var(--md-body-large); color: var(--md-on-surface); background: transparent;
+  border: 1px solid var(--md-outline); border-radius: 4px; transition: border-color var(--md-dur) var(--md-ease), box-shadow var(--md-dur) var(--md-ease); }
+.save-box input[type="text"]:hover { border-color: var(--md-on-surface); }
+.save-box input[type="text"]:focus { border-color: var(--md-primary); box-shadow: 0 0 0 1px var(--md-primary); }
+.save-box input[aria-invalid="true"] { border-color: var(--md-error); box-shadow: 0 0 0 1px var(--md-error); }
+#save-error:not(:empty) { color: var(--md-error); }
+
+@media (max-width: 520px) {
+  .actions .btn, .actions .group { width: 100%; }
+  .actions .group .btn { flex: 1; }
+  .dialog .group { flex-direction: column; }
+  .dialog .group .btn { width: 100%; }
+  .actions { flex-direction: column-reverse; }
+  .choice-box { padding: 16px; gap: 12px; }
+  .steps li { gap: 8px; }
+  .steps li b { width: 36px; height: 36px; }
+  .steps li:not(:last-child)::after { margin: 0 6px; }
+  .hero { padding: 32px 16px 24px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation: none !important; transition: none !important; }
+}
+</style>
+</head>
+<body>
+<header class="top" id="top"></header>
+<div class="wrap">
+  <main id="app"><noscript><p>Per usare questa pagina serve JavaScript.</p></noscript></main>
+  <div id="live" class="sr-only" aria-live="polite"></div>
+</div>
+
+<script>
+/* =====================================================================
+   Dati finti (nessun dato reale, nessuna rete)
+   ===================================================================== */
+const SOURCES = [
+  { id: 'sd', name: 'Scheda SD EOS_DIGITAL', short: 'Scheda SD', icon: 'card', detail: '64 GB · 38 GB usati', photos: 1284, usedPct: 59, path: '/Volumes/EOS_DIGITAL/' },
+  { id: 'pictures', name: 'Cartella Foto', short: 'Cartella Foto', icon: 'folder', detail: 'In Immagini · 112 GB', photos: 9640, usedPct: 0, path: '~/Pictures/Foto/' },
+  { id: 'camera', name: 'Fotocamera collegata', short: 'Fotocamera', icon: 'camera', detail: 'Canon EOS R6 · 21 GB', photos: 612, usedPct: 0, path: '/Volumes/EOS_R6/DCIM/' },
+];
+const DESTINATIONS = [
+  { id: 'lacie', name: 'Disco Backup LaCie', short: 'Disco LaCie', icon: 'disk', free: '1,2 TB liberi', freeGb: 1200, usedPct: 40, path: '/Volumes/LaCie/Backup/' },
+  { id: 'nas', name: 'NAS dello Studio', short: 'NAS Studio', icon: 'nas', free: '640 GB liberi', freeGb: 640, usedPct: 84, path: '/Volumes/NAS-Studio/Foto/' },
+  { id: 'dropbox', name: 'Cartella Dropbox', short: 'Dropbox', icon: 'cloud', free: '3,1 GB liberi', freeGb: 3.1, usedPct: 79, path: '~/Dropbox/Foto/' },
+];
+const SAVED_COPIES = [
+  { id: 1, name: 'Matrimonio Rossi – scheda → disco', sourceId: 'sd', destId: 'lacie', mirror: false, verify: false, ignoreHidden: true, lastRun: 'ieri alle 21:40', result: 'ok' },
+  { id: 2, name: 'Archivio foto – cartella → NAS', sourceId: 'pictures', destId: 'nas', mirror: true, verify: false, ignoreHidden: true, lastRun: '12 ottobre', result: 'ok' },
+  { id: 3, name: 'Servizio Bianchi – fotocamera → disco', sourceId: 'camera', destId: 'lacie', mirror: false, verify: true, ignoreHidden: true, lastRun: '3 ottobre', result: 'attention' },
+];
+const PREVIEW = { created: 248, updated: 12, removedIfMirror: 7, gb: 4.3, minutes: 6, minutesIfVerify: 11 };
+const FILES_TO_COPY = [
+  ['IMG_0412.CR2', 'new'], ['IMG_0413.CR2', 'new'], ['IMG_0414.CR2', 'new'], ['IMG_0415.CR2', 'new'],
+  ['IMG_0398.CR2', 'updated'], ['IMG_0399.CR2', 'updated'], ['IMG_0416.CR2', 'new'], ['IMG_0417.CR2', 'new'],
+];
+const FILES_TO_REMOVE = ['IMG_0301.CR2', 'IMG_0302.CR2', 'IMG_0307.CR2', 'IMG_0311.CR2'];
+const HIDDEN_FILES = ['.DS_Store', 'Thumbs.db'];
+const TOTAL_FILES = PREVIEW.created + PREVIEW.updated;
+const FIRST_PHOTO_NUMBER = 412;
+
+const ICONS = {
+  card: '<path d="M18 2h-8L4.02 8 4 20c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm-6 6h-2V4h2v4zm3 0h-2V4h2v4zm3 0h-2V4h2v4z"/>',
+  folder: '<path d="M10 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2h-8l-2-2z"/>',
+  camera: '<circle cx="12" cy="12" r="3.2"/><path d="M9 2 7.17 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2h-3.17L15 2H9zm3 15c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5z"/>',
+  disk: '<path fill-rule="evenodd" d="M4 6h16a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2zm2 5v2h7v-2H6zm11 0a1 1 0 1 0 0 2 1 1 0 0 0 0-2z"/>',
+  nas: '<path d="M20 13H4c-.55 0-1 .45-1 1v6c0 .55.45 1 1 1h16c.55 0 1-.45 1-1v-6c0-.55-.45-1-1-1zM7 19c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2zM20 3H4c-.55 0-1 .45-1 1v6c0 .55.45 1 1 1h16c.55 0 1-.45 1-1V4c0-.55-.45-1-1-1zM7 9c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2z"/>',
+  cloud: '<path d="M19.35 10.04A7.49 7.49 0 0 0 12 4C9.11 4 6.6 5.64 5.35 8.04A5.994 5.994 0 0 0 0 14c0 3.31 2.69 6 6 6h13c2.76 0 5-2.24 5-5 0-2.64-2.05-4.78-4.65-4.96z"/>',
+  check: '<path d="M9 16.17 4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/>',
+  warn: '<path d="M1 21h22L12 2 1 21zm12-3h-2v-2h2v2zm0-4h-2v-4h2v4z"/>',
+  shield: '<path d="M12 1 3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4zm-2 16-4-4 1.41-1.41L10 14.17l6.59-6.59L18 9l-8 8z"/>',
+  plug: '<path d="M16.01 7 16 3h-2v4h-4V3H8v4h-.01C7 6.99 6 7.99 6 8.99v5.49L9.5 18v3h5v-3l3.5-3.51v-5.5c0-1-1-2-1.99-1.99z"/>',
+  play: '<path d="M8 5v14l11-7z"/>',
+  pause: '<path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/>',
+  back: '<path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/>',
+  forward: '<path d="m12 4-1.41 1.41L16.17 11H4v2h12.17l-5.58 5.59L12 20l8-8z"/>',
+  chevron: '<path d="M16.59 8.59 12 13.17 7.41 8.59 6 10l6 6 6-6z"/>',
+  plus: '<path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/>',
+  trash: '<path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/>',
+};
+
+/* =====================================================================
+   Stato (un solo oggetto) e funzioni pure
+   ===================================================================== */
+const newChoices = () => ({ sourceId: null, destId: null, mirror: false, mirrorConfirmed: false, verify: false, ignoreHidden: true });
+const state = {
+  view: 'home',
+  choices: newChoices(),
+  saved: SAVED_COPIES.map((copy) => ({ ...copy })),
+  open: { files: false, curious: false },
+  run: { percent: 0, paused: false, askCancel: false },
+  notice: '',
+  saveName: '',
+  saveError: false,
+  copySaved: false,
+  folderNote: false,
+};
+let timer = null;
+let shownView = null;
+
+// Costruisce il comando rsync mostrato "per curiosi".
+function buildCommand({ sourcePath, destPath, mirror, verify, ignoreHidden, dryRun }) {
+  const parts = ['rsync', '-a'];
+  if (dryRun) parts.push('-n');
+  if (verify) parts.push('-c');
+  if (mirror) parts.push('--delete');
+  parts.push('--info=progress2');
+  if (ignoreHidden) HIDDEN_FILES.forEach((name) => parts.push(`--exclude='${name}'`));
+  parts.push(`"${sourcePath}"`, `"${destPath}"`);
+  return parts.join(' ');
+}
+
+const byId = (list, id) => list.find((item) => item.id === id);
+const source = () => byId(SOURCES, state.choices.sourceId);
+const destination = () => byId(DESTINATIONS, state.choices.destId);
+const esc = (text) => String(text).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const decimal = (n) => n.toFixed(1).replace('.', ',');
+const hasEnoughSpace = (dest) => dest.freeGb >= PREVIEW.gb;
+const commandFor = (dryRun) => buildCommand({ ...state.choices, sourcePath: source().path, destPath: destination().path, dryRun });
+
+function previewSummary() {
+  const { mirror, verify } = state.choices;
+  return {
+    created: PREVIEW.created, updated: PREVIEW.updated, gb: PREVIEW.gb,
+    removed: mirror ? PREVIEW.removedIfMirror : 0,
+    minutes: verify ? PREVIEW.minutesIfVerify : PREVIEW.minutes,
+  };
+}
+
+function progressMetrics() {
+  const { percent } = state.run;
+  const done = Math.min(TOTAL_FILES, Math.round((percent / 100) * TOTAL_FILES));
+  const secondsLeft = Math.round(((100 - percent) / 100) * previewSummary().minutes * 60);
+  return {
+    percent: Math.floor(percent),
+    file: `IMG_${String(FIRST_PHOTO_NUMBER + done).padStart(4, '0')}.CR2`,
+    filesText: `${done} di ${TOTAL_FILES}`,
+    speed: `${Math.round(92 + 26 * Math.sin(percent / 6))} MB al secondo`,
+    remaining: secondsLeft >= 60 ? `circa ${Math.ceil(secondsLeft / 60)} min` : `${secondsLeft} secondi`,
+  };
+}
+
+/* =====================================================================
+   Pezzi di HTML riutilizzabili
+   ===================================================================== */
+const icon = (name) => `<svg class="icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="currentColor">${ICONS[name]}</svg>`;
+const badge = (kind, text, iconName) => `<span class="badge badge-${kind}">${iconName ? icon(iconName) : ''}${text}</span>`;
+const button = (action, label, { arg = '', style = '', iconName = '', after = false, disabled = false, id = '' } = {}) =>
+  `<button type="button" class="btn ${style}" data-action="${action}" data-arg="${arg}"${id ? ` id="${id}"` : ''}${disabled ? ' disabled' : ''}>${!after && iconName ? icon(iconName) : ''}${label}${after && iconName ? icon(iconName) : ''}</button>`;
+
+function choiceCard({ type = 'radio', name, id, value = '', key, checked, iconName, title, sub, meter, withMark = true }) {
+  return `<label class="choice" for="${id}">
+    <input type="${type}"${type === 'checkbox' ? ' role="switch"' : ''} name="${name}" id="${id}" value="${value}" data-set="${key}"${checked ? ' checked' : ''}>
+    <span class="choice-box">
+      ${iconName ? `<span class="choice-icon">${icon(iconName)}</span>` : ''}
+      <span class="choice-body"><span class="choice-title">${title}</span><span class="choice-sub">${sub}</span>${meter ? `<span class="meter" aria-hidden="true"><i style="width:${meter}%"></i></span>` : ''}</span>
+      <span class="choice-mark">${icon('check')}</span>
+    </span></label>`;
+}
+
+const STEP_NAMES = ['Da dove?', 'Dove?', 'Come?', 'Controlla'];
+function stepIndicator(current) {
+  const items = STEP_NAMES.map((label, i) => {
+    const n = i + 1;
+    const cls = n < current ? 'done' : '';
+    return `<li class="${cls}"${n === current ? ' aria-current="step"' : ''}><b>${n}</b><span>${label}</span><span class="sr-only"> (passo ${n} di 4)</span></li>`;
+  });
+  return `<ol class="steps" aria-label="Passi per creare una copia">${items.join('')}</ol>`;
+}
+
+function disclosure(key, label, bodyHtml) {
+  const open = state.open[key];
+  return `<div class="disclosure">
+    <button type="button" id="toggle-${key}" aria-expanded="${open}" aria-controls="panel-${key}" data-action="toggle" data-arg="${key}">${label}${icon('chevron')}</button>
+    <div class="disclosure-body" id="panel-${key}"${open ? '' : ' hidden'}>${bodyHtml}</div>
+  </div>`;
+}
+
+function curiousBox(dryRun) {
+  return disclosure('curious', 'Per curiosi: vedi il comando', `
+    <p class="muted">Questo è il comando che il computer userebbe con le tue scelte. È qui solo per imparare: in questa versione non viene eseguito niente.</p>
+    <pre><code>${esc(commandFor(dryRun))}</code></pre>`);
+}
+
+const navButtons = (backTo, backLabel, next) => `<div class="actions">
+  ${button('goto', backLabel, { arg: backTo, iconName: 'back' })}
+  ${next}</div>`;
+
+/* =====================================================================
+   Una funzione di disegno per ogni schermata
+   ===================================================================== */
+function renderHome() {
+  const rows = state.saved.map((copy) => {
+    const ok = copy.result === 'ok';
+    return `<li class="copy-row">
+      <div class="copy-info">
+        <p class="copy-name">${esc(copy.name)}</p>
+        <p class="copy-meta">Ultima copia: ${copy.lastRun}</p>
+      </div>
+      ${ok ? badge('ok', 'Tutto al sicuro', 'check') : badge('warn', 'Da riprendere', 'warn')}
+      ${button('startSaved', 'Avvia', { arg: copy.id, style: 'btn-primary', iconName: 'play' })}
+    </li>`;
+  }).join('');
+  return `
+    <div class="home-head">
+      <div><h1 tabindex="-1">Le mie copie</h1><p class="lead">Scegli una copia già pronta, oppure creane una nuova.</p></div>
+      ${button('newCopy', 'Nuova copia', { style: 'btn-primary btn-big', iconName: 'plus' })}
+    </div>
+    ${state.notice ? `<div class="snackbar" role="status">${icon('shield')}<p>${state.notice}</p></div>` : ''}
+    <ul class="copies">${rows}</ul>`;
+}
+
+function renderSource() {
+  const cards = SOURCES.map((s) => choiceCard({
+    name: 'source', id: `source-${s.id}`, value: s.id, key: 'sourceId', checked: state.choices.sourceId === s.id,
+    iconName: s.icon, title: s.name, sub: `${s.detail} · ${s.photos.toLocaleString('it-IT')} foto`, meter: s.usedPct,
+  })).join('');
+  return `${stepIndicator(1)}
+    <h1 tabindex="-1">Da dove?</h1>
+    <p class="lead">Scegli dove si trovano le foto che vuoi copiare.</p>
+    <fieldset><legend class="sr-only">Da dove vuoi copiare le foto</legend><div class="choices">${cards}</div></fieldset>
+    ${navButtons('home', 'Annulla', button('goto', 'Avanti', { arg: 'dest', style: 'btn-primary', iconName: 'forward', after: true, disabled: !state.choices.sourceId }))}`;
+}
+
+function renderDest() {
+  const chosen = destination();
+  const tooSmall = chosen && !hasEnoughSpace(chosen);
+  const cards = DESTINATIONS.map((d) => choiceCard({
+    name: 'dest', id: `dest-${d.id}`, value: d.id, key: 'destId', checked: state.choices.destId === d.id,
+    iconName: d.icon, title: d.name, sub: d.free, meter: d.usedPct,
+  })).join('');
+  const warning = tooSmall ? `<div class="callout callout-warn" role="alert">${icon('warn')}<div>
+      <p><strong>Qui non c'è abbastanza spazio.</strong></p>
+      <p>Per queste foto servono circa ${decimal(PREVIEW.gb)} GB, ma su ${chosen.short} ne restano ${chosen.free.replace(' liberi', '')}. Scegli un altro posto, così nessuna foto resta a metà.</p></div></div>` : '';
+  const canContinue = chosen && !tooSmall;
+  return `${stepIndicator(2)}
+    <h1 tabindex="-1">Dove le salvo?</h1>
+    <p class="lead">Scegli dove tenere il backup delle tue foto.</p>
+    <fieldset><legend class="sr-only">Dove vuoi salvare le foto</legend><div class="choices">${cards}</div></fieldset>
+    ${warning}
+    ${navButtons('source', 'Indietro', button('goto', 'Avanti', { arg: 'options', style: 'btn-primary', iconName: 'forward', after: true, disabled: !canContinue }))}`;
+}
+
+function renderOptions() {
+  const c = state.choices;
+  const modes = [
+    choiceCard({ name: 'mode', id: 'mode-new', value: 'new', key: 'mirror', checked: !c.mirror,
+      title: 'Copia solo le foto nuove (consigliato)', sub: 'Le foto già nel backup restano dove sono. Il backup non perde mai niente.' }),
+    choiceCard({ name: 'mode', id: 'mode-mirror', value: 'mirror', key: 'mirror', checked: c.mirror,
+      title: 'Rispecchia esattamente la sorgente', sub: 'Il backup diventa identico alla sorgente, foto per foto.' }),
+  ].join('');
+  const mirrorWarning = c.mirror ? `<div class="callout callout-warn">${icon('warn')}<div>
+      <p><strong>Le foto che non sono più nella sorgente verranno cancellate anche dal backup.</strong></p>
+      <label class="confirm-line" for="mirror-ok"><input type="checkbox" id="mirror-ok" data-set="mirrorConfirmed"${c.mirrorConfirmed ? ' checked' : ''}>
+      <span>Ho capito: voglio che il backup cancelli le foto che non ci sono più nella sorgente.</span></label></div></div>` : '';
+  const extras = [
+    choiceCard({ type: 'checkbox', name: 'verify', id: 'opt-verify', key: 'verify', checked: c.verify,
+      title: 'Controlla che ogni copia sia perfetta (più lento)', sub: 'Confronta ogni foto copiata con l\'originale.' }),
+    choiceCard({ type: 'checkbox', name: 'hidden', id: 'opt-hidden', key: 'ignoreHidden', checked: c.ignoreHidden,
+      title: 'Ignora i file di sistema nascosti', sub: 'Salta i file che il computer crea da solo e che non sono foto.' }),
+  ].join('');
+  const canContinue = !c.mirror || c.mirrorConfirmed;
+  return `${stepIndicator(3)}
+    <h1 tabindex="-1">Come vuoi copiare?</h1>
+    <p class="lead">Se non sei sicuro, lascia la scelta consigliata.</p>
+    <fieldset><legend class="sr-only">Che tipo di copia</legend><div class="choices">${modes}</div></fieldset>
+    ${mirrorWarning}
+    <fieldset><legend class="sr-only">Altre opzioni</legend><div class="choices">${extras}</div></fieldset>
+    ${navButtons('dest', 'Indietro', button('goto', 'Avanti', { arg: 'preview', style: 'btn-primary', iconName: 'forward', after: true, disabled: !canContinue }))}`;
+}
+
+function fileRow([name, kind]) {
+  return `<li><code>${name}</code>${kind === 'new' ? badge('new', 'Nuova') : badge('upd', 'Aggiornata')}</li>`;
+}
+
+function renderPreview() {
+  const s = previewSummary();
+  const stats = [
+    [s.created, 'foto nuove'], [s.updated, 'aggiornate'], [s.removed, 'da eliminare', s.removed > 0],
+    [`${decimal(s.gb)} GB`, 'da copiare'], [`${s.minutes} min`, 'tempo stimato'],
+  ].map(([value, label, danger]) => `<div class="stat${danger ? ' danger' : ''}"><dt>${label}</dt><dd>${value}</dd></div>`).join('');
+  const removeBox = s.removed > 0 ? `<section class="deleting" aria-labelledby="del-title">
+      <h2 id="del-title">${icon('trash')}${s.removed} foto verranno cancellate dal backup</h2>
+      <p>Non sono più nella sorgente. Se non è quello che vuoi, torna indietro e scegli «Copia solo le foto nuove».</p>
+      <ul class="files">${FILES_TO_REMOVE.map((n) => `<li><code>${n}</code>${badge('del', 'Da eliminare')}</li>`).join('')}</ul>
+      <p class="muted">…e altre ${s.removed - FILES_TO_REMOVE.length}</p></section>` : '';
+  return `${stepIndicator(4)}
+    <h1 tabindex="-1">Controlla prima di copiare</h1>
+    <p class="lead">Non è stato ancora copiato niente. Ecco cosa succederà.</p>
+    <p class="route"><span class="pill">${icon(source().icon)}${source().name}</span>${icon('forward')}<span class="pill">${icon(destination().icon)}${destination().name}</span></p>
+    <dl class="stats" aria-label="Riepilogo">${stats}</dl>
+    ${removeBox}
+    ${disclosure('files', 'Vedi l\'elenco delle foto', `<ul class="files">${FILES_TO_COPY.map(fileRow).join('')}</ul><p class="muted" style="margin:10px 0 0">…e altre ${s.created + s.updated - FILES_TO_COPY.length} foto</p>`)}
+    ${curiousBox(true)}
+    ${navButtons('options', 'Indietro', button('startRun', 'Copia ora', { style: 'btn-primary btn-big', iconName: 'play' }))}`;
+}
+
+function renderProgress() {
+  const m = progressMetrics();
+  const { paused, askCancel } = state.run;
+  const cancelPanel = askCancel ? `<div class="scrim"><div class="dialog" role="alertdialog" aria-modal="true" aria-labelledby="cancel-title" aria-describedby="cancel-text">
+      <h2 id="cancel-title">Vuoi fermare la copia?</h2>
+      <p id="cancel-text">Le foto già copiate restano al sicuro nel backup. Potrai riprendere quando vuoi.</p>
+      <div class="group">${button('keepGoing', 'Continua a copiare', { style: 'btn-primary', id: 'keep-going' })}${button('confirmCancel', 'Sì, ferma la copia', { style: 'btn-danger' })}</div></div></div>` : '';
+  return `<div${askCancel ? ' inert' : ''}>
+    <h1 tabindex="-1">${paused ? 'Copia in pausa' : 'Sto copiando le tue foto'}</h1>
+    <p class="lead">Puoi lasciare il computer acceso: ci pensiamo noi.</p>
+    <div class="big-percent" id="pct" aria-hidden="true">${m.percent}%</div>
+    <div class="bar${paused || askCancel ? '' : ' running'}" id="strip" role="progressbar" aria-label="Avanzamento della copia" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${m.percent}">
+      <div class="bar-fill" id="fill" style="width:${state.run.percent}%"></div></div>
+    <p class="current-file">Sto copiando <code id="file">${m.file}</code></p>
+    <dl class="facts">
+      <div><dt>Foto copiate</dt><dd id="files">${m.filesText}</dd></div>
+      <div><dt>Velocità</dt><dd id="speed">${m.speed}</dd></div>
+      <div><dt>Tempo rimasto</dt><dd id="left">${m.remaining}</dd></div>
+    </dl>
+    ${paused ? `<div class="callout callout-warn paused-note">${icon('pause')}<p>La copia è ferma. Non perdi niente: premi «Riprendi» quando vuoi continuare.</p></div>` : ''}
+    <div class="actions">
+      <div class="group">${button('togglePause', paused ? 'Riprendi' : 'Pausa', { style: 'btn-tonal', id: 'pause-btn', iconName: paused ? 'play' : 'pause' })}${button('askCancel', 'Annulla', { id: 'cancel-btn' })}</div>
+      <button type="button" class="btn btn-text" data-action="simulateProblem">Simula problema</button>
+    </div></div>${cancelPanel}`;
+}
+
+function renderDone() {
+  const s = previewSummary();
+  const defaultName = `${source().short} → ${destination().short}`;
+  const nameValue = state.saveName || defaultName;
+  const removedLine = s.removed ? ` ${s.removed} foto che non c'erano più nella sorgente sono state tolte dal backup.` : '';
+  const savedBox = state.copySaved
+    ? `<div class="snackbar" role="status">${icon('check')}<p>Copia salvata. La trovi in «Le mie copie».</p></div>`
+    : `<div class="save-box"><label for="save-name">Salva questa copia per la prossima volta</label>
+        <div class="row"><input type="text" id="save-name" data-bind="saveName" value="${esc(nameValue)}" autocomplete="off"${state.saveError ? ' aria-invalid="true" aria-describedby="save-error"' : ''}>
+        ${button('saveCopy', 'Salva', { style: 'btn-primary' })}</div>
+        <p id="save-error" class="muted" role="status" style="margin:8px 0 0">${state.saveError ? 'Scrivi un nome per ritrovare questa copia.' : ''}</p></div>`;
+  return `
+    <div class="hero">
+      <div class="hero-icon">${icon('check')}</div>
+      <h1 tabindex="-1">Le tue foto sono al sicuro</h1>
+      <p class="lead">${s.created} foto nuove e ${s.updated} aggiornate sono ora su ${destination().name}.${removedLine}</p>
+    </div>
+    <dl class="stats" aria-label="Riepilogo">
+      <div class="stat"><dt>foto nuove copiate</dt><dd>${s.created}</dd></div>
+      <div class="stat"><dt>aggiornate</dt><dd>${s.updated}</dd></div>
+      ${s.removed ? `<div class="stat"><dt>tolte dal backup</dt><dd>${s.removed}</dd></div>` : ''}
+      <div class="stat"><dt>al sicuro</dt><dd>${decimal(s.gb)} GB</dd></div>
+    </dl>
+    ${savedBox}
+    ${state.folderNote ? `<div class="snackbar" role="status">${icon('folder')}<p>In questa versione dimostrativa la cartella non si apre davvero.</p></div>` : ''}
+    ${curiousBox(false)}
+    <div class="actions">
+      ${button('openFolder', 'Apri la cartella di backup', { style: 'btn-tonal', iconName: 'folder' })}
+      ${button('home', 'Torna alle mie copie', { style: 'btn-primary' })}
+    </div>`;
+}
+
+function renderError() {
+  return `
+    <div class="hero err">
+      <div class="hero-icon">${icon('plug')}</div>
+      <h1 tabindex="-1">Il disco di backup non risponde</h1>
+      <div class="callout callout-ok" role="alert">${icon('shield')}<div>
+        <p><strong>Non preoccuparti: nessuna foto è andata persa.</strong></p>
+        <p>Le foto già copiate sono al sicuro e i tuoi originali non sono stati toccati.</p></div></div>
+    </div>
+    <p style="margin-top:20px">Controlla che <strong>${destination().name}</strong> sia collegato e acceso, poi riprova. Le foto già copiate non vengono copiate di nuovo.</p>
+    <div class="actions">
+      ${button('home', 'Torna alle mie copie')}
+      ${button('startRun', 'Riprova', { style: 'btn-primary btn-big', iconName: 'play' })}
+    </div>`;
+}
+
+const VIEWS = { home: renderHome, source: renderSource, dest: renderDest, options: renderOptions, preview: renderPreview, progress: renderProgress, done: renderDone, error: renderError };
+
+/* =====================================================================
+   Disegno, focus e navigazione
+   ===================================================================== */
+const app = document.getElementById('app');
+const announce = (text) => { document.getElementById('live').textContent = text; };
+
+// Ridisegna la schermata; il focus resta sul controllo attivo (o passa al titolo se la schermata è nuova).
+function render(focusId) {
+  const previousId = document.activeElement && document.activeElement.id;
+  const changed = state.view !== shownView;
+  app.innerHTML = VIEWS[state.view]();
+  shownView = state.view;
+  app.classList.toggle('enter', changed); // dissolvenza solo quando cambia schermata
+  const target = (focusId && document.getElementById(focusId))
+    || (changed ? app.querySelector('h1') : previousId && document.getElementById(previousId));
+  if (target) target.focus({ preventScroll: !changed });
+  if (changed) window.scrollTo(0, 0);
+}
+
+function go(view) {
+  if (view !== 'progress') stopTimer();
+  Object.assign(state, { view, notice: view === 'home' ? state.notice : '', folderNote: false });
+  render();
+}
+
+/* =====================================================================
+   Simulazione della copia
+   ===================================================================== */
+function stopTimer() { clearInterval(timer); timer = null; }
+
+function updateProgress() {
+  const m = progressMetrics();
+  const text = { pct: `${m.percent}%`, file: m.file, files: m.filesText, speed: m.speed, left: m.remaining };
+  Object.entries(text).forEach(([id, value]) => { document.getElementById(id).textContent = value; });
+  document.getElementById('fill').style.width = `${state.run.percent}%`;
+  document.getElementById('strip').setAttribute('aria-valuenow', m.percent);
+}
+
+function tick() {
+  const { run } = state;
+  if (run.paused || run.askCancel) return;
+  const before = Math.floor(run.percent / 25);
+  run.percent = Math.min(100, run.percent + 0.9 + Math.random() * 0.8);
+  if (run.percent >= 100) { announce('Copia completata'); return go('done'); }
+  if (Math.floor(run.percent / 25) > before) announce(`Copia al ${Math.floor(run.percent / 25) * 25} per cento`);
+  updateProgress();
+}
+
+/* =====================================================================
+   Azioni (collegate ai pulsanti con data-action)
+   ===================================================================== */
+const ACTIONS = {
+  home: () => go('home'),
+  goto: (view) => go(view),
+  newCopy: () => { state.choices = newChoices(); go('source'); },
+  startSaved: (id) => {
+    const { sourceId, destId, mirror, verify, ignoreHidden } = state.saved.find((copy) => copy.id === Number(id));
+    state.choices = { sourceId, destId, mirror, mirrorConfirmed: mirror, verify, ignoreHidden };
+    ACTIONS.startRun();
+  },
+  startRun: () => {
+    state.run = { percent: 0, paused: false, askCancel: false };
+    state.copySaved = false; state.saveName = ''; state.saveError = false;
+    go('progress');
+    timer = setInterval(tick, 250);
+  },
+  togglePause: () => {
+    state.run.paused = !state.run.paused;
+    announce(state.run.paused ? 'Copia in pausa' : 'Copia ripresa');
+    render();
+  },
+  askCancel: () => { state.run.askCancel = true; render('keep-going'); },
+  keepGoing: () => { state.run.askCancel = false; render('cancel-btn'); },
+  confirmCancel: () => {
+    state.notice = 'Copia fermata. Le foto già copiate sono al sicuro.';
+    go('home');
+  },
+  simulateProblem: () => { announce('La copia si è fermata: il disco non risponde'); go('error'); },
+  toggle: (key) => { state.open[key] = !state.open[key]; render(); },
+  saveCopy: () => {
+    const name = state.saveName.trim() || document.getElementById('save-name').value.trim();
+    state.saveError = !name;
+    if (name) {
+      const { sourceId, destId, mirror, verify, ignoreHidden } = state.choices;
+      state.saved.unshift({ id: Date.now(), name, sourceId, destId, mirror, verify, ignoreHidden, lastRun: 'adesso', result: 'ok' });
+      state.copySaved = true;
+    }
+    render(name ? undefined : 'save-name');
+  },
+  openFolder: () => { state.folderNote = true; render(); },
+};
+
+document.addEventListener('click', (event) => {
+  const el = event.target.closest('[data-action]');
+  if (el) ACTIONS[el.dataset.action](el.dataset.arg);
+});
+
+// Scelte: radio e checkbox aggiornano lo stato e ridisegnano.
+document.addEventListener('change', (event) => {
+  const el = event.target;
+  if (!el.dataset.set) return;
+  const key = el.dataset.set;
+  if (key === 'mirror') {
+    state.choices.mirror = el.value === 'mirror';
+    if (!state.choices.mirror) state.choices.mirrorConfirmed = false;
+  } else {
+    state.choices[key] = el.type === 'checkbox' ? el.checked : el.value;
+  }
+  render();
+});
+
+// Il nome della copia si salva mentre si scrive, senza ridisegnare (altrimenti si perde il cursore).
+document.addEventListener('input', (event) => {
+  if (event.target.dataset.bind) state[event.target.dataset.bind] = event.target.value;
+});
+
+document.getElementById('top').innerHTML = `<span class="logo">${icon('shield')}</span><b>Backup Foto</b>`;
+render();
+</script>
+</body>
+</html>
