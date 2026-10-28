@@ -1,6 +1,6 @@
 # 2G Soluzioni
 
-Repository della mini startup della classe 5D dell'ITIS Galileo Galilei.
+Repository della mini startup della classe 5E dell'ITIS Galileo Galilei.
 
 ## Struttura
 
