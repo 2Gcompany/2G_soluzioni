@@ -20,31 +20,12 @@ Questa guida spiega come installare e avviare **OpenCode** nel terminale di un C
 ### 2. Installa OpenCode
 Nel terminale del Codespace esegui il comando ufficiale di installazione:
 
-```bash
-curl -fsSL https://opencode.ai/install | bash
-```
-
-Lo script installa OpenCode per l’utente corrente (di solito nella directory `~/.opencode/bin`).
-
-#### Alternativa con npm
-Se nel Codespace è disponibile Node.js/npm, puoi installare OpenCode anche così:
+Se nel Codespace è disponibile Node.js/npm, puoi installare OpenCode:
 
 ```bash
 npm install -g opencode-ai
 ```
 
-### 3. Aggiorna il PATH della sessione corrente
-Per usare subito il comando `opencode` senza chiudere il terminale, ricarica la configurazione della shell:
-
-```bash
-source ~/.bashrc
-```
-
-Se utilizzi `zsh`, esegui invece:
-
-```bash
-source ~/.zshrc
-```
 
 ### 4. Verifica l’installazione
 Controlla che OpenCode sia disponibile:
@@ -64,7 +45,6 @@ opencode
 
 Al primo avvio ti potrebbe essere richiesto di:
 - selezionare un provider/modello;
-- configurare le credenziali (es. API key o accesso al provider), in base al servizio scelto.
 
 Segui le istruzioni mostrate a schermo per completare la configurazione iniziale.
 
