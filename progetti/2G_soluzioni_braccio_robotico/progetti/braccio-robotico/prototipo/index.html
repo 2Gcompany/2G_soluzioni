@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Braccio robotico – simulazione</title>
+<style>
+  :root {
+    --sfondo: #e8edf1;
+    --pannello: #ffffff;
+    --inchiostro: #12303a;
+    --tenue: #5b7480;
+    --linea: #c5d2da;
+    --segnale: #f2b705;
+    --segnale-scuro: #8a6700;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: "Segoe UI", system-ui, -apple-system, Helvetica, Arial, sans-serif;
+    background: var(--sfondo);
+    color: var(--inchiostro);
+    line-height: 1.5;
+  }
+  main { max-width: 980px; margin: 0 auto; padding: 24px 16px 48px; }
+  h1 { font-size: 1.6rem; margin: 0 0 4px; }
+  p.sotto { margin: 0 0 20px; color: var(--tenue); }
+  .griglia { display: grid; grid-template-columns: 1fr 300px; gap: 16px; }
+  @media (max-width: 760px) { .griglia { grid-template-columns: 1fr; } }
+  .scheda { background: var(--pannello); border: 1px solid var(--linea); border-radius: 10px; padding: 16px; }
+  canvas { width: 100%; height: auto; display: block; border-radius: 6px; background: #f5f8fa; }
+  h2 { font-size: 1rem; margin: 0 0 12px; }
+  .giunto { margin-bottom: 14px; }
+  .giunto label { display: flex; justify-content: space-between; font-size: .92rem; }
+  .giunto output { font-variant-numeric: tabular-nums; color: var(--tenue); }
+  input[type=range] { width: 100%; accent-color: var(--segnale-scuro); }
+  .posizioni { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 4px; }
+  button {
+    font: inherit; padding: 8px 12px; border-radius: 6px; cursor: pointer;
+    border: 1px solid var(--inchiostro); background: var(--pannello); color: var(--inchiostro);
+  }
+  button:hover { background: var(--segnale); }
+  :focus-visible { outline: 3px solid var(--inchiostro); outline-offset: 2px; }
+  details { margin-top: 16px; }
+  summary { cursor: pointer; font-weight: 600; }
+  code, pre { font-family: Consolas, "Courier New", monospace; }
+  pre { background: var(--inchiostro); color: #fff; padding: 12px; border-radius: 6px; overflow-x: auto; margin: 10px 0 0; }
+  .avviso { margin-top: 16px; padding: 10px 14px; border-left: 4px solid var(--segnale); background: #fff8e0; font-size: .92rem; }
+  table { border-collapse: collapse; width: 100%; font-size: .9rem; margin-top: 10px; }
+  th, td { text-align: left; padding: 6px 8px; border-bottom: 1px solid var(--linea); vertical-align: top; }
+</style>
+</head>
+<body>
+<main>
+  <h1>Braccio robotico – simulazione</h1>
+  <p class="sotto">Muovi i giunti con i cursori e guarda come cambia la posizione della pinza.</p>
+
+  <div class="griglia">
+    <div class="scheda">
+      <canvas id="tela" width="640" height="420" aria-label="Disegno del braccio robotico visto di lato"></canvas>
+    </div>
+
+    <div class="scheda">
+      <h2>Giunti</h2>
+      <div id="comandi"></div>
+      <h2>Posizioni pronte</h2>
+      <div class="posizioni">
+        <button data-pos="riposo">Riposo</button>
+        <button data-pos="alto">In alto</button>
+        <button data-pos="afferra">Afferra</button>
+        <button data-pos="saluta">Saluta</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="scheda" style="margin-top:16px">
+    <h2>Posizione della pinza</h2>
+    <p style="margin:0">x = <strong id="px">0</strong> mm &nbsp; y = <strong id="py">0</strong> mm</p>
+    <details>
+      <summary>Per curiosi: il comando per l'Arduino</summary>
+      <p>Ogni volta che muovi un cursore, la simulazione prepara la riga che il braccio vero riceverebbe sulla porta seriale:</p>
+      <pre id="comando">S90 G90 P90 C40</pre>
+      <table>
+        <tr><th>Lettera</th><th>Giunto</th><th>Valori</th></tr>
+        <tr><td>S</td><td>Spalla</td><td>0–180°</td></tr>
+        <tr><td>G</td><td>Gomito</td><td>0–180°</td></tr>
+        <tr><td>P</td><td>Polso</td><td>0–180°</td></tr>
+        <tr><td>C</td><td>Pinza (apertura)</td><td>0–100 %</td></tr>
+      </table>
+    </details>
+  </div>
+
+  <p class="avviso"><strong>Attenzione:</strong> la simulazione non è collegata a nessun braccio vero. Nessun comando viene inviato, serve solo a capire come funziona.</p>
+</main>
+
+<script>
+(function () {
+  // Lunghezze dei segmenti in millimetri (valori di esempio)
+  var L1 = 130, L2 = 110, L3 = 60;
+  var SCALA = 1.6;               // pixel per millimetro
+  var BASE_X = 200, BASE_Y = 360; // posizione della base sulla tela
+
+  var giunti = [
+    { id: "spalla", nome: "Spalla", lettera: "S", min: 0, max: 180, unita: "°", valore: 90 },
+    { id: "gomito", nome: "Gomito", lettera: "G", min: 0, max: 180, unita: "°", valore: 90 },
+    { id: "polso",  nome: "Polso",  lettera: "P", min: 0, max: 180, unita: "°", valore: 90 },
+    { id: "pinza",  nome: "Pinza (apertura)", lettera: "C", min: 0, max: 100, unita: "%", valore: 40 }
+  ];
+
+  var posizioni = {
+    riposo:  [90, 160, 90, 20],
+    alto:    [90, 90, 90, 60],
+    afferra: [35, 60, 110, 90],
+    saluta:  [120, 70, 60, 100]
+  };
+
+  var tela = document.getElementById("tela");
+  var ctx = tela.getContext("2d");
+  var contenitore = document.getElementById("comandi");
+  var cursori = {};
+  var uscite = {};
+
+  giunti.forEach(function (g) {
+    var riga = document.createElement("div");
+    riga.className = "giunto";
+    riga.innerHTML = '<label for="' + g.id + '">' + g.nome +
+      ' <output id="out-' + g.id + '"></output></label>' +
+      '<input type="range" id="' + g.id + '" min="' + g.min + '" max="' + g.max + '" value="' + g.valore + '">';
+    contenitore.appendChild(riga);
+    cursori[g.id] = riga.querySelector("input");
+    uscite[g.id] = riga.querySelector("output");
+    cursori[g.id].addEventListener("input", function () {
+      g.valore = Number(cursori[g.id].value);
+      disegna();
+    });
+  });
+
+  function rad(gradi) { return gradi * Math.PI / 180; }
+
+  function punti() {
+    var s = giunti[0].valore, g = giunti[1].valore, p = giunti[2].valore;
+    // Angoli assoluti: 90 = il segmento prosegue dritto rispetto al precedente
+    var a1 = s;
+    var a2 = a1 + (g - 90);
+    var a3 = a2 + (p - 90);
+    var p0 = { x: 0, y: 0 };
+    var p1 = { x: p0.x + L1 * Math.cos(rad(a1)), y: p0.y + L1 * Math.sin(rad(a1)) };
+    var p2 = { x: p1.x + L2 * Math.cos(rad(a2)), y: p1.y + L2 * Math.sin(rad(a2)) };
+    var p3 = { x: p2.x + L3 * Math.cos(rad(a3)), y: p2.y + L3 * Math.sin(rad(a3)) };
+    return { p0: p0, p1: p1, p2: p2, p3: p3, a3: a3 };
+  }
+
+  function aPixel(p) { return { x: BASE_X + p.x * SCALA, y: BASE_Y - p.y * SCALA }; }
+
+  function segmento(a, b, spessore, colore) {
+    ctx.strokeStyle = colore;
+    ctx.lineWidth = spessore;
+    ctx.lineCap = "round";
+    ctx.beginPath(); ctx.moveTo(a.x, a.y); ctx.lineTo(b.x, b.y); ctx.stroke();
+  }
+
+  function giunto(p) {
+    ctx.fillStyle = "#12303a";
+    ctx.beginPath(); ctx.arc(p.x, p.y, 9, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = "#f2b705";
+    ctx.beginPath(); ctx.arc(p.x, p.y, 4, 0, Math.PI * 2); ctx.fill();
+  }
+
+  function disegna() {
+    var pt = punti();
+    var P0 = aPixel(pt.p0), P1 = aPixel(pt.p1), P2 = aPixel(pt.p2), P3 = aPixel(pt.p3);
+
+    ctx.clearRect(0, 0, tela.width, tela.height);
+
+    // Piano di lavoro
+    ctx.fillStyle = "#c5d2da";
+    ctx.fillRect(0, BASE_Y + 22, tela.width, tela.height - BASE_Y - 22);
+    // Base
+    ctx.fillStyle = "#12303a";
+    ctx.fillRect(BASE_X - 40, BASE_Y, 80, 22);
+
+    // Segmenti
+    segmento(P0, P1, 16, "#f2b705");
+    segmento(P1, P2, 14, "#f2b705");
+    segmento(P2, P3, 10, "#12303a");
+
+    // Pinza: due dita ai lati dell'asse del polso
+    var dx = Math.cos(rad(pt.a3)), dy = -Math.sin(rad(pt.a3));
+    var nx = -dy, ny = dx;
+    var apertura = 4 + giunti[3].valore * 0.16;
+    var lung = 26;
+    [-1, 1].forEach(function (lato) {
+      var ia = { x: P3.x + nx * apertura * lato, y: P3.y + ny * apertura * lato };
+      var fb = { x: ia.x + dx * lung, y: ia.y + dy * lung };
+      segmento(P3, ia, 4, "#12303a");
+      segmento(ia, fb, 5, "#12303a");
+    });
+
+    giunto(P0); giunto(P1); giunto(P2);
+
+    // Testi
+    giunti.forEach(function (g) {
+      uscite[g.id].textContent = g.valore + g.unita;
+    });
+    document.getElementById("px").textContent = Math.round(pt.p3.x);
+    document.getElementById("py").textContent = Math.round(pt.p3.y);
+    document.getElementById("comando").textContent = giunti.map(function (g) {
+      return g.lettera + g.valore;
+    }).join(" ");
+  }
+
+  // Movimento dolce verso una posizione pronta
+  var animazione = null;
+  function vaiA(valori) {
+    if (animazione) cancelAnimationFrame(animazione);
+    var inizio = giunti.map(function (g) { return g.valore; });
+    var t0 = null, durata = 700;
+    var ridotto = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    function passo(t) {
+      if (t0 === null) t0 = t;
+      var f = ridotto ? 1 : Math.min((t - t0) / durata, 1);
+      var e = f < 0.5 ? 2 * f * f : 1 - Math.pow(-2 * f + 2, 2) / 2;
+      giunti.forEach(function (g, i) {
+        g.valore = Math.round(inizio[i] + (valori[i] - inizio[i]) * e);
+        cursori[g.id].value = g.valore;
+      });
+      disegna();
+      if (f < 1) animazione = requestAnimationFrame(passo);
+    }
+    animazione = requestAnimationFrame(passo);
+  }
+
+  document.querySelectorAll("[data-pos]").forEach(function (b) {
+    b.addEventListener("click", function () { vaiA(posizioni[b.dataset.pos]); });
+  });
+
+  disegna();
+})();
+</script>
+</body>
+</html>
