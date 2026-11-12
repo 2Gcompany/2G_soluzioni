@@ -48,6 +48,39 @@ Al primo avvio ti potrebbe essere richiesto di:
 
 Segui le istruzioni mostrate a schermo per completare la configurazione iniziale.
 
+### 6. Verifica che OpenCode risponda davvero (script Python)
+
+`opencode --version` verifica solo che il comando ci sia: non dice se
+OpenCode **parla davvero con il modello**. Per questo il repository include
+uno script di verifica in Python che:
+
+1. controlla che il comando `opencode` sia installato;
+2. controlla che il server HTTP di OpenCode sia attivo (lo avvia se serve);
+3. apre una sessione via API, manda un prompt con una **parola segreta**
+   e controlla che la risposta del modello contenga quella parola.
+
+Eseguilo dalla root del repository:
+
+```bash
+python3 installazione_opencode/verifica_opencode.py
+```
+
+Se tutto funziona vedi `VERIFICA SUPERATA ✅` e lo script esce con codice `0`,
+altrimenti `VERIFICA FALLITA ❌` e codice `1`.
+
+Opzioni utili:
+
+```bash
+# prova un modello specifico (formato PROVIDER/MODELLO)
+python3 installazione_opencode/verifica_opencode.py --model opencode/big-pickle
+
+# attende più a lungo la risposta (secondi, default 120)
+python3 installazione_opencode/verifica_opencode.py --timeout 180
+```
+
+Lo script usa solo la libreria standard di Python: non serve installare
+alcun pacchetto con `pip`.
+
 ### Risoluzione problemi
 - **`opencode: command not found`**: esegui di nuovo `source ~/.bashrc` (o riapri il terminale) e verifica che la directory di installazione sia nel `PATH`.
 - **Errore durante il download/installazione**: verifica la connettività del Codespace ed eventuali proxy o restrizioni di rete aziendali; se necessario contatta il team DevOps/IT di 2Gcompany.
