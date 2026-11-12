@@ -1,0 +1,622 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>Derivate passo passo</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700&family=Source+Sans+3:ital,wght@0,400;0,600;0,700;1,400&family=STIX+Two+Text:ital,wght@0,400;0,600;1,400;1,600&display=swap">
+<style>
+/* Quaderno di matematica: colonna di lettura stretta, penna blu per le funzioni, penna rossa per pendenze e derivate, formule in serif STIX. */
+:root{
+  --bg:#F4F6FA; --surface:#FFFFFF; --fg:#14213D; --muted:#566178; --line:#D8DEE9; --grid:#E4E9F1;
+  --blue:#1F4FD8; --red:#D12F27; --on-blue:#FFFFFF;
+  --tint-blue:#E8EEFD; --tint-red:#FCEAE8; --tint-good:#E3F5EE; --good:#13795B; --bad:#B42318;
+  --f-display:'Bricolage Grotesque','Segoe UI',system-ui,sans-serif;
+  --f-body:'Source Sans 3','Segoe UI',system-ui,sans-serif;
+  --f-math:'STIX Two Text','Cambria','Times New Roman',serif;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#0E1424; --surface:#161E33; --fg:#E7ECF6; --muted:#9BA7BF; --line:#2A3552; --grid:#212B45;
+    --blue:#86A7FF; --red:#FF8379; --on-blue:#0E1424;
+    --tint-blue:#1B2748; --tint-red:#3A1F27; --tint-good:#12332B; --good:#4CD6A8; --bad:#FF8A7E;
+    color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#0E1424; --surface:#161E33; --fg:#E7ECF6; --muted:#9BA7BF; --line:#2A3552; --grid:#212B45;
+  --blue:#86A7FF; --red:#FF8379; --on-blue:#0E1424;
+  --tint-blue:#1B2748; --tint-red:#3A1F27; --tint-good:#12332B; --good:#4CD6A8; --bad:#FF8A7E;
+  color-scheme:dark;
+}
+*,*::before,*::after{box-sizing:border-box}
+body{
+  background:var(--bg); color:var(--fg);
+  font:400 18px/1.6 var(--f-body);
+  padding-block:0 64px;
+  padding-left:max(16px, env(safe-area-inset-left, 0px));
+  padding-right:max(16px, env(safe-area-inset-right, 0px));
+}
+.wrap{max-width:740px; margin-inline:auto; min-width:0}
+h1,h2,h3,h4{font-family:var(--f-display); line-height:1.15; text-wrap:balance; margin:0}
+h1{font-size:clamp(38px,8vw,60px); font-weight:700; letter-spacing:-.02em}
+h2{font-size:clamp(26px,5vw,34px); font-weight:700; letter-spacing:-.01em}
+h3{font-size:21px; font-weight:700}
+h4{font-size:17px; font-weight:700}
+p{margin:0}
+a{color:var(--blue)}
+i{font-style:italic}
+:focus-visible{outline:3px solid var(--blue); outline-offset:2px}
+
+.hero{padding-block:48px 32px}
+.lead{font-size:21px; line-height:1.5; color:var(--muted); margin-top:16px; max-width:34em}
+.toc{display:flex; flex-wrap:wrap; gap:8px; margin-top:26px}
+.toc a{
+  text-decoration:none; color:var(--fg); font-weight:600; font-size:16px;
+  border:1px solid var(--line); background:var(--surface); border-radius:999px; padding:6px 14px;
+}
+.toc a:hover{border-color:var(--blue); color:var(--blue)}
+
+section{display:flex; flex-direction:column; gap:18px; padding-block:44px 12px; border-top:1px solid var(--line)}
+
+/* matematica nel testo */
+.m{font-family:var(--f-math); font-size:1.1em; white-space:nowrap}
+.eq{
+  font-family:var(--f-math); font-size:clamp(19px,4.6vw,24px); text-align:center;
+  padding:16px 14px; background:var(--tint-blue); border-radius:8px; overflow-x:auto; white-space:nowrap;
+}
+.frac{display:inline-flex; flex-direction:column; vertical-align:middle; text-align:center; margin:0 .2em; line-height:1.25}
+.frac>span:first-child{border-bottom:1.5px solid currentColor; padding:0 .25em .08em}
+.frac>span:last-child{padding:.08em .25em 0}
+.lim{display:inline-flex; flex-direction:column; align-items:center; vertical-align:middle; line-height:1.05; margin-right:.3em}
+.lim .lsub{font-size:.7em}
+sub,sup{line-height:0}
+
+/* pannelli interattivi */
+.panel{
+  background:var(--surface); border:1px solid var(--line); border-radius:10px; padding:14px;
+  display:flex; flex-direction:column; gap:14px; min-width:0;
+}
+.plot{width:100%; min-width:0}
+.plot svg{display:block}
+.cap{font-size:15px; color:var(--muted); display:flex; align-items:center; gap:8px}
+.sw{width:22px; height:4px; border-radius:2px; display:inline-block}
+.sw.blue{background:var(--blue)} .sw.red{background:var(--red)}
+.ctrl{display:grid; grid-template-columns:1fr 1fr; gap:12px 22px; align-items:end}
+@media (max-width:560px){.ctrl{grid-template-columns:1fr}}
+.ctrl .row{display:flex; flex-direction:column; gap:6px; min-width:0}
+.ctrl label{display:flex; justify-content:space-between; gap:8px; font-weight:600; font-size:16px}
+output{font-variant-numeric:tabular-nums; font-weight:700}
+input[type=range]{width:100%; accent-color:var(--blue); margin:0}
+select{font:inherit; font-size:17px; padding:8px 10px; border-radius:8px; border:1px solid var(--line); background:var(--surface); color:var(--fg); width:100%}
+.btn{
+  font:600 16px var(--f-body); padding:10px 16px; border-radius:8px; cursor:pointer;
+  border:1px solid var(--blue); background:var(--blue); color:var(--on-blue);
+}
+.btn.ghost{background:transparent; color:var(--blue)}
+.btn-row{display:flex; flex-wrap:wrap; gap:10px; align-items:center}
+
+.stats{display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); gap:10px}
+.stat{padding:10px 12px; border-radius:8px; background:var(--bg); border:1px solid var(--line); min-width:0}
+.stat .k{display:block; font-size:14px; color:var(--muted); line-height:1.3}
+.stat .v{display:block; font:700 26px/1.25 var(--f-display); font-variant-numeric:tabular-nums}
+.stat.red .v{color:var(--red)}
+.stat.blue .v{color:var(--blue)}
+.calc{font-family:var(--f-math); font-size:20px; text-align:center; font-variant-numeric:tabular-nums; overflow-x:auto; white-space:nowrap}
+.tablewrap{overflow-x:auto}
+.tab{width:100%; border-collapse:collapse; font-size:17px}
+.tab th,.tab td{padding:7px 10px; text-align:right; border-bottom:1px solid var(--line); font-variant-numeric:tabular-nums; white-space:nowrap}
+.tab th{font-weight:600; color:var(--muted); font-size:15px}
+.tab th:first-child,.tab td:first-child{text-align:left}
+.tab td.last{color:var(--red); font-weight:700}
+
+.pill{display:inline-flex; align-items:center; gap:6px; padding:4px 14px; border-radius:999px; font-weight:700; font-size:16px}
+.pill.up{background:var(--tint-good); color:var(--good)}
+.pill.down{background:var(--tint-red); color:var(--bad)}
+.pill.flat{background:var(--tint-blue); color:var(--blue)}
+.hint{font-size:16px; color:var(--muted); min-height:1.6em}
+
+/* elementi del grafico */
+.gl{stroke:var(--grid); stroke-width:1}
+.ax{stroke:var(--muted); stroke-width:1.25}
+.frame{fill:none; stroke:var(--line)}
+.tk{fill:var(--muted); font:12px var(--f-body)}
+.tk2{fill:var(--muted); font:italic 15px var(--f-math)}
+.cv{fill:none; stroke:var(--blue); stroke-width:2.75; stroke-linejoin:round}
+.cv2{fill:none; stroke:var(--red); stroke-width:2.75; stroke-linejoin:round}
+.sec{stroke:var(--red); stroke-width:2.25}
+.tan{stroke:var(--fg); stroke-width:1.5; stroke-dasharray:6 5}
+.guide{stroke:var(--muted); stroke-width:1.25; stroke-dasharray:3 4}
+.pt{fill:var(--surface); stroke-width:2.75}
+.pt-b{stroke:var(--blue)} .pt-r{stroke:var(--red)}
+.lbl{fill:var(--fg); font:600 14px var(--f-body)}
+.lbl.b{fill:var(--blue)} .lbl.r{fill:var(--red)}
+
+/* regole */
+.tbl{width:100%; border-collapse:collapse}
+.tbl th{font-size:14px; text-transform:uppercase; letter-spacing:.06em; color:var(--muted); text-align:left; font-weight:600; padding:8px 12px; border-bottom:2px solid var(--line)}
+.tbl td{padding:10px 12px; border-bottom:1px solid var(--line); font-family:var(--f-math); font-size:21px}
+.tbl td:last-child{color:var(--red)}
+.rules{display:grid; grid-template-columns:repeat(auto-fit,minmax(280px,1fr)); gap:14px}
+.rule{background:var(--surface); border:1px solid var(--line); border-radius:10px; padding:16px; display:flex; flex-direction:column; gap:10px; min-width:0}
+.rule .formula{font-family:var(--f-math); font-size:21px; overflow-x:auto; padding-block:2px}
+.rule .ex{font-size:16px; color:var(--muted)}
+.rule .ex .m{color:var(--fg)}
+
+/* esempi */
+.examples{display:grid; grid-template-columns:repeat(auto-fit,minmax(300px,1fr)); gap:32px}
+.ex-block{display:flex; flex-direction:column; gap:12px; min-width:0}
+.ex-block ol{margin:0; padding-left:1.3em; display:flex; flex-direction:column; gap:6px}
+.res{font-family:var(--f-math); font-size:22px; padding:10px 14px; background:var(--tint-red); border-radius:8px; overflow-x:auto; white-space:nowrap}
+.steps{margin:0; padding-left:1.3em; display:flex; flex-direction:column; gap:8px}
+
+/* quiz */
+.quiz{display:flex; flex-direction:column; gap:24px}
+fieldset{border:0; padding:0; margin:0; min-width:0; display:flex; flex-direction:column; gap:10px}
+legend{font-weight:700; font-size:19px; padding:0; margin-bottom:8px}
+.opts{display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); gap:8px}
+.opt{
+  font:400 21px var(--f-math); text-align:left; padding:10px 14px; border-radius:8px; cursor:pointer;
+  background:var(--surface); color:var(--fg); border:1px solid var(--line);
+}
+.opt:hover:not(:disabled){border-color:var(--blue)}
+.opt:disabled{cursor:default}
+.opt.ok{border-color:var(--good); background:var(--tint-good)}
+.opt.ok::after{content:" ✓"; color:var(--good); font-family:var(--f-body); font-weight:700}
+.opt.bad{border-color:var(--bad); background:var(--tint-red)}
+.opt.bad::after{content:" ✗"; color:var(--bad); font-family:var(--f-body); font-weight:700}
+.fb{font-size:16px; color:var(--muted); min-height:1.6em}
+.score{display:flex; flex-wrap:wrap; gap:14px; align-items:center; font-weight:600}
+
+ul.err{margin:0; padding-left:1.2em; display:flex; flex-direction:column; gap:12px}
+.sum{font:700 clamp(22px,4.6vw,30px)/1.3 var(--f-display); text-wrap:balance}
+.end{padding-block:44px 0; border-top:1px solid var(--line)}
+@media (prefers-reduced-motion: reduce){*{scroll-behavior:auto !important}}
+</style>
+
+<header class="hero">
+  <div class="wrap">
+    <h1>Derivate passo passo</h1>
+    <p class="lead">La derivata dice quanto in fretta cambia una grandezza. Qui parti dall’idea, arrivi alle regole di calcolo e provi tutto con figure che puoi muovere.</p>
+    <nav class="toc" aria-label="Indice della pagina">
+      <a href="#idea">L’idea</a>
+      <a href="#definizione">La definizione</a>
+      <a href="#segno">Il segno</a>
+      <a href="#regole">Le regole</a>
+      <a href="#esempi">Esempi svolti</a>
+      <a href="#prova">Alla prova</a>
+    </nav>
+  </div>
+</header>
+
+<main class="wrap">
+
+<section id="idea">
+  <h2>L’idea: la velocità in un istante</h2>
+  <p>Se in 2 ore percorri 120 km, la velocità media è 120 ÷ 2 = 60 km/h. Il contachilometri però non ti dà la media. Ti dice la velocità adesso, in questo istante.</p>
+  <p>La derivata è proprio questo: la velocità istantanea di una funzione. Per ottenerla si calcola la velocità media su un intervallo e poi si rimpicciolisce l’intervallo.</p>
+  <p>Nella figura la curva è <span class="m"><i>f</i>(<i>x</i>) = <i>x</i><sup>2</sup></span>. La retta rossa passa per due punti della curva, P e Q, distanti <i>h</i>. La sua pendenza è la variazione media tra i due punti. Porta <i>h</i> verso zero: Q si avvicina a P e la retta rossa si appoggia alla curva, fino a diventare la tangente (tratteggiata).</p>
+
+  <div class="panel" id="fig1">
+    <div class="plot" id="plot1"></div>
+    <div class="ctrl">
+      <div class="row">
+        <label for="x0">Punto <span class="m"><i>x</i><sub>0</sub></span> <output id="x0v" for="x0">1,0</output></label>
+        <input type="range" id="x0" min="0" max="2.5" step="0.1" value="1">
+      </div>
+      <div class="row">
+        <label for="hs">Distanza <span class="m"><i>h</i></span> <output id="hv" for="hs">1,50</output></label>
+        <input type="range" id="hs" min="0" max="100" step="1" value="0">
+      </div>
+    </div>
+    <div class="btn-row">
+      <button type="button" class="btn" id="go">Avvicina h a zero</button>
+      <button type="button" class="btn ghost" id="back">Riparti da h grande</button>
+    </div>
+    <div class="stats">
+      <div class="stat red"><span class="k">Pendenza della secante</span><span class="v" id="s-sec">0</span></div>
+      <div class="stat"><span class="k">Pendenza della tangente (2·<i>x</i><sub>0</sub>)</span><span class="v" id="s-tan">0</span></div>
+    </div>
+    <p class="calc" id="calc" aria-live="off"></p>
+    <div class="tablewrap">
+      <table class="tab" id="tab1">
+        <thead><tr><th><i>h</i></th><th>1</th><th>0,5</th><th>0,1</th><th>0,01</th><th>verso 0</th></tr></thead>
+        <tbody><tr><th>pendenza</th><td id="t0"></td><td id="t1"></td><td id="t2"></td><td id="t3"></td><td class="last" id="t4"></td></tr></tbody>
+      </table>
+    </div>
+  </div>
+  <p>Guarda la tabella. Più <i>h</i> diventa piccolo, più la pendenza della secante si avvicina a un numero preciso. Quel numero è la derivata in <span class="m"><i>x</i><sub>0</sub></span>.</p>
+
+  <h3>La stessa idea in altri campi</h3>
+  <ul class="err">
+    <li>Chilometri percorsi nel tempo → la derivata è la velocità, in km/h.</li>
+    <li>Altezza di una pianta nel tempo → la derivata è il ritmo di crescita, in cm al giorno.</li>
+    <li>Litri nel serbatoio nel tempo → la derivata è il consumo, in litri all’ora.</li>
+  </ul>
+</section>
+
+<section id="definizione">
+  <h2>La definizione</h2>
+  <p>La pendenza della secante si chiama <strong>rapporto incrementale</strong>: quanto cambia <i>f</i> (in alto) diviso quanto ci si sposta in <i>x</i> (in basso).</p>
+  <div class="eq">
+    <i>f</i>′(<i>x</i>) =
+    <span class="lim"><span>lim</span><span class="lsub"><i>h</i> → 0</span></span>
+    <span class="frac"><span><i>f</i>(<i>x</i> + <i>h</i>) − <i>f</i>(<i>x</i>)</span><span><i>h</i></span></span>
+  </div>
+  <p>La derivata <span class="m"><i>f</i>′(<i>x</i>)</span> è il valore a cui tende il rapporto incrementale quando <i>h</i> diventa piccolissimo. Si scrive anche <span class="m">d<i>f</i>/d<i>x</i></span> e si legge “derivata di f rispetto a x”.</p>
+
+  <h3>Esempio con <span class="m"><i>f</i>(<i>x</i>) = <i>x</i><sup>2</sup></span></h3>
+  <ol class="steps">
+    <li>Scrivi <span class="m"><i>f</i>(<i>x</i> + <i>h</i>) = (<i>x</i> + <i>h</i>)<sup>2</sup> = <i>x</i><sup>2</sup> + 2<i>xh</i> + <i>h</i><sup>2</sup></span>.</li>
+    <li>Sottrai <span class="m"><i>f</i>(<i>x</i>)</span>: resta <span class="m">2<i>xh</i> + <i>h</i><sup>2</sup></span>.</li>
+    <li>Dividi per <i>h</i>: <span class="m">(2<i>xh</i> + <i>h</i><sup>2</sup>) / <i>h</i> = 2<i>x</i> + <i>h</i></span>.</li>
+    <li>Fai tendere <i>h</i> a 0: il termine <i>h</i> sparisce e resta <span class="m">2<i>x</i></span>.</li>
+  </ol>
+  <div class="res"><i>f</i>′(<i>x</i>) = 2<i>x</i></div>
+  <p>Controllo con la figura: con <span class="m"><i>x</i><sub>0</sub> = 1</span> la tangente ha pendenza 2·1 = 2, e la tabella si avvicina proprio a 2.</p>
+</section>
+
+<section id="segno">
+  <h2>Cosa dice il segno della derivata</h2>
+  <p>La derivata in un punto è la pendenza della tangente in quel punto. Se è positiva la funzione sale. Se è negativa scende. Dove vale zero la tangente è orizzontale, e lì può esserci un massimo o un minimo.</p>
+
+  <div class="panel" id="fig2">
+    <div class="ctrl">
+      <div class="row">
+        <label for="fsel">Funzione</label>
+        <select id="fsel">
+          <option value="quad">x²</option>
+          <option value="cubic">x³ − 3x</option>
+          <option value="sin">sin x</option>
+          <option value="exp">eˣ</option>
+        </select>
+      </div>
+      <div class="row">
+        <label for="xs">Punto <span class="m"><i>x</i></span> <output id="xv" for="xs">1,00</output></label>
+        <input type="range" id="xs" min="-3" max="3" step="0.05" value="1">
+      </div>
+    </div>
+    <p class="cap"><span class="sw blue"></span>La funzione <i>f</i> con la sua tangente (tratteggiata)</p>
+    <div class="plot" id="plotA"></div>
+    <p class="cap"><span class="sw red"></span>La derivata <i>f</i>′: l’altezza del punto rosso è la pendenza della tangente</p>
+    <div class="plot" id="plotB"></div>
+    <div class="stats">
+      <div class="stat"><span class="k"><i>x</i></span><span class="v" id="e-x">0</span></div>
+      <div class="stat blue"><span class="k"><i>f</i>(<i>x</i>)</span><span class="v" id="e-f">0</span></div>
+      <div class="stat red"><span class="k"><i>f</i>′(<i>x</i>)</span><span class="v" id="e-d">0</span></div>
+    </div>
+    <div><span class="pill flat" id="pill" role="status">→ tangente orizzontale</span></div>
+    <p class="hint" id="hint"></p>
+  </div>
+  <p>Prova con sin x. Dove la derivata cos x tocca lo zero, la curva ha i suoi massimi e i suoi minimi.</p>
+</section>
+
+<section id="regole">
+  <h2>Le regole per calcolare</h2>
+  <p>Non serve fare il limite ogni volta. Bastano poche derivate da conoscere e cinque regole per combinarle.</p>
+
+  <h3>Derivate da conoscere</h3>
+  <div class="tablewrap">
+    <table class="tbl">
+      <thead><tr><th>Funzione <i>f</i>(<i>x</i>)</th><th>Derivata <i>f</i>′(<i>x</i>)</th></tr></thead>
+      <tbody>
+        <tr><td><i>k</i> (un numero fisso)</td><td>0</td></tr>
+        <tr><td><i>x</i></td><td>1</td></tr>
+        <tr><td><i>x</i><sup><i>n</i></sup></td><td><i>n</i>·<i>x</i><sup><i>n</i> − 1</sup></td></tr>
+        <tr><td>sin <i>x</i></td><td>cos <i>x</i></td></tr>
+        <tr><td>cos <i>x</i></td><td>− sin <i>x</i></td></tr>
+        <tr><td><i>e</i><sup><i>x</i></sup></td><td><i>e</i><sup><i>x</i></sup></td></tr>
+        <tr><td>ln <i>x</i></td><td>1 / <i>x</i></td></tr>
+      </tbody>
+    </table>
+  </div>
+  <p>Per la potenza l’esponente scende davanti e diminuisce di uno. Esempio: <span class="m">(<i>x</i><sup>5</sup>)′ = 5<i>x</i><sup>4</sup></span>.</p>
+
+  <h3>Regole di calcolo</h3>
+  <div class="rules">
+    <div class="rule">
+      <h4>Numero per funzione</h4>
+      <div class="formula">(<i>k</i>·<i>f</i>)′ = <i>k</i>·<i>f</i>′</div>
+      <p class="ex">Il numero resta fuori. Esempio: <span class="m">(4<i>x</i><sup>3</sup>)′ = 4·3<i>x</i><sup>2</sup> = 12<i>x</i><sup>2</sup></span></p>
+    </div>
+    <div class="rule">
+      <h4>Somma</h4>
+      <div class="formula">(<i>f</i> + <i>g</i>)′ = <i>f</i>′ + <i>g</i>′</div>
+      <p class="ex">Si deriva un pezzo alla volta. Esempio: <span class="m">(<i>x</i><sup>2</sup> + 3<i>x</i>)′ = 2<i>x</i> + 3</span></p>
+    </div>
+    <div class="rule">
+      <h4>Prodotto</h4>
+      <div class="formula">(<i>f</i>·<i>g</i>)′ = <i>f</i>′·<i>g</i> + <i>f</i>·<i>g</i>′</div>
+      <p class="ex">Esempio: <span class="m">(<i>x</i>·sin <i>x</i>)′ = 1·sin <i>x</i> + <i>x</i>·cos <i>x</i></span></p>
+    </div>
+    <div class="rule">
+      <h4>Quoziente</h4>
+      <div class="formula">(<i>f</i>/<i>g</i>)′ = <span class="frac"><span><i>f</i>′·<i>g</i> − <i>f</i>·<i>g</i>′</span><span><i>g</i><sup>2</sup></span></span></div>
+      <p class="ex">Esempio: <span class="m">(<i>x</i>/(<i>x</i>+1))′ = <span class="frac"><span>1·(<i>x</i>+1) − <i>x</i>·1</span><span>(<i>x</i>+1)<sup>2</sup></span></span> = <span class="frac"><span>1</span><span>(<i>x</i>+1)<sup>2</sup></span></span></span></p>
+    </div>
+    <div class="rule">
+      <h4>Funzione composta</h4>
+      <div class="formula">[<i>f</i>(<i>g</i>(<i>x</i>))]′ = <i>f</i>′(<i>g</i>(<i>x</i>))·<i>g</i>′(<i>x</i>)</div>
+      <p class="ex">Deriva la funzione esterna lasciando dentro l’interna, poi moltiplica per la derivata dell’interna. Esempio: <span class="m">((2<i>x</i>+1)<sup>3</sup>)′ = 3(2<i>x</i>+1)<sup>2</sup>·2</span></p>
+    </div>
+  </div>
+</section>
+
+<section id="esempi">
+  <h2>Esempi svolti</h2>
+  <div class="examples">
+    <div class="ex-block">
+      <h3><span class="m"><i>f</i>(<i>x</i>) = 3<i>x</i><sup>2</sup> + 5<i>x</i> − 7</span></h3>
+      <ol>
+        <li>Deriva ogni termine con la regola della somma.</li>
+        <li><span class="m">3<i>x</i><sup>2</sup></span> diventa <span class="m">3·2<i>x</i> = 6<i>x</i></span>.</li>
+        <li><span class="m">5<i>x</i></span> diventa 5.</li>
+        <li>Il numero fisso −7 diventa 0.</li>
+      </ol>
+      <div class="res"><i>f</i>′(<i>x</i>) = 6<i>x</i> + 5</div>
+    </div>
+    <div class="ex-block">
+      <h3><span class="m"><i>f</i>(<i>x</i>) = <i>x</i><sup>2</sup>·sin <i>x</i></span></h3>
+      <ol>
+        <li>È un prodotto. Prendi <span class="m"><i>f</i> = <i>x</i><sup>2</sup></span> e <span class="m"><i>g</i> = sin <i>x</i></span>.</li>
+        <li>Le derivate sono <span class="m"><i>f</i>′ = 2<i>x</i></span> e <span class="m"><i>g</i>′ = cos <i>x</i></span>.</li>
+        <li>Applica <span class="m"><i>f</i>′·<i>g</i> + <i>f</i>·<i>g</i>′</span>.</li>
+      </ol>
+      <div class="res">2<i>x</i>·sin <i>x</i> + <i>x</i><sup>2</sup>·cos <i>x</i></div>
+    </div>
+    <div class="ex-block">
+      <h3><span class="m"><i>f</i>(<i>x</i>) = (2<i>x</i> + 1)<sup>3</sup></span></h3>
+      <ol>
+        <li>È una funzione composta. L’esterna è <span class="m"><i>u</i><sup>3</sup></span>, l’interna è <span class="m"><i>u</i> = 2<i>x</i> + 1</span>.</li>
+        <li>Derivata dell’esterna: <span class="m">3<i>u</i><sup>2</sup> = 3(2<i>x</i> + 1)<sup>2</sup></span>.</li>
+        <li>Derivata dell’interna: 2.</li>
+        <li>Moltiplica le due.</li>
+      </ol>
+      <div class="res"><i>f</i>′(<i>x</i>) = 6(2<i>x</i> + 1)<sup>2</sup></div>
+    </div>
+    <div class="ex-block">
+      <h3>Dove ha un minimo <span class="m"><i>f</i>(<i>x</i>) = <i>x</i><sup>2</sup> − 4<i>x</i> + 3</span>?</h3>
+      <ol>
+        <li>Calcola la derivata: <span class="m"><i>f</i>′(<i>x</i>) = 2<i>x</i> − 4</span>.</li>
+        <li>Cerca dove si annulla: <span class="m">2<i>x</i> − 4 = 0</span> dà <span class="m"><i>x</i> = 2</span>.</li>
+        <li>Per <span class="m"><i>x</i> &lt; 2</span> la derivata è negativa e <i>f</i> scende. Per <span class="m"><i>x</i> &gt; 2</span> è positiva e <i>f</i> sale.</li>
+        <li>Il valore nel punto è <span class="m"><i>f</i>(2) = 4 − 8 + 3 = −1</span>.</li>
+      </ol>
+      <div class="res">minimo nel punto (2, −1)</div>
+    </div>
+  </div>
+</section>
+
+<section id="prova">
+  <h2>Mettiti alla prova</h2>
+  <p>Scegli una risposta per ogni domanda. Dopo la scelta vedi subito la spiegazione.</p>
+  <div class="quiz" id="quiz"></div>
+  <div class="score">
+    <span id="score">Risposte corrette: 0 su 5</span>
+    <button type="button" class="btn ghost" id="reset">Ricomincia</button>
+  </div>
+</section>
+
+<section id="errori">
+  <h2>Errori da evitare</h2>
+  <ul class="err">
+    <li><strong>La derivata di un numero fisso è 0.</strong> <span class="m">(7)′ = 0</span>, non 7.</li>
+    <li><strong>Nel prodotto non si derivano i fattori separatamente.</strong> <span class="m">(<i>f</i>·<i>g</i>)′</span> non è <span class="m"><i>f</i>′·<i>g</i>′</span>.</li>
+    <li><strong>Nella funzione composta serve la derivata dell’interna.</strong> <span class="m">((3<i>x</i>+2)<sup>2</sup>)′ = 2(3<i>x</i>+2)·3</span>.</li>
+    <li><strong>Con la potenza l’esponente scende di uno.</strong> <span class="m"><i>x</i><sup>3</sup></span> diventa <span class="m">3<i>x</i><sup>2</sup></span>, non <span class="m">3<i>x</i><sup>3</sup></span>.</li>
+  </ul>
+</section>
+
+<section class="end">
+  <p class="sum">La derivata è la pendenza della tangente: la velocità istantanea con cui la funzione cambia.</p>
+</section>
+
+</main>
+
+<script>
+(function(){
+  var $ = function(id){ return document.getElementById(id); };
+  var nf = function(d){ return new Intl.NumberFormat("it-IT",{minimumFractionDigits:d,maximumFractionDigits:d}); };
+  var nf1=nf(1), nf2=nf(2), nf4=nf(4), nfv=new Intl.NumberFormat("it-IT",{maximumFractionDigits:2});
+  function fix(s){ return s.replace("-","−"); }
+  function f1(n){ if(Math.abs(n)<0.05) n=0; return fix(nf1.format(n)); }
+  function f2(n){ if(Math.abs(n)<0.005) n=0; return fix(nf2.format(n)); }
+  function f4(n){ if(Math.abs(n)<0.00005) n=0; return fix(nf4.format(n)); }
+  function ft(n){ if(Math.abs(n)<1e-9) n=0; return fix(nfv.format(Math.round(n*100)/100)); }
+  function N(v){ return (+v).toFixed(1); }
+
+  /* ---------- disegno ---------- */
+  function niceStep(span,target){
+    var raw=span/target, p=Math.pow(10,Math.floor(Math.log10(raw))), m=raw/p;
+    return (m<1.5?1:m<3.5?2:m<7.5?5:10)*p;
+  }
+  function ticks(a,b,target){
+    var s=niceStep(b-a,target), out=[], k0=Math.ceil(a/s-1e-9);
+    for(var k=k0;k*s<=b+1e-9;k++) out.push(+(k*s).toFixed(10));
+    return out;
+  }
+  function frame(W,H,xr,yr,id){
+    var pad={l:40,r:14,t:12,b:26};
+    var iw=W-pad.l-pad.r, ih=H-pad.t-pad.b;
+    var sx=function(x){ return pad.l+(x-xr[0])/(xr[1]-xr[0])*iw; };
+    var sy=function(y){ return pad.t+(1-(y-yr[0])/(yr[1]-yr[0]))*ih; };
+    var b='<defs><clipPath id="'+id+'"><rect x="'+pad.l+'" y="'+pad.t+'" width="'+iw+'" height="'+ih+'"/></clipPath></defs>';
+    ticks(xr[0],xr[1],Math.max(4,Math.round(iw/70))).forEach(function(t){
+      b+='<line class="gl" x1="'+N(sx(t))+'" y1="'+pad.t+'" x2="'+N(sx(t))+'" y2="'+(pad.t+ih)+'"/>'+
+         '<text class="tk" x="'+N(sx(t))+'" y="'+(H-8)+'" text-anchor="middle">'+ft(t)+'</text>';
+    });
+    ticks(yr[0],yr[1],Math.max(3,Math.round(ih/45))).forEach(function(t){
+      b+='<line class="gl" x1="'+pad.l+'" y1="'+N(sy(t))+'" x2="'+(pad.l+iw)+'" y2="'+N(sy(t))+'"/>'+
+         '<text class="tk" x="'+(pad.l-6)+'" y="'+N(sy(t)+4)+'" text-anchor="end">'+ft(t)+'</text>';
+    });
+    if(xr[0]<0&&xr[1]>0) b+='<line class="ax" x1="'+N(sx(0))+'" y1="'+pad.t+'" x2="'+N(sx(0))+'" y2="'+(pad.t+ih)+'"/>';
+    if(yr[0]<0&&yr[1]>0) b+='<line class="ax" x1="'+pad.l+'" y1="'+N(sy(0))+'" x2="'+(pad.l+iw)+'" y2="'+N(sy(0))+'"/>';
+    b+='<rect class="frame" x="'+pad.l+'" y="'+pad.t+'" width="'+iw+'" height="'+ih+'"/>';
+    return {sx:sx,sy:sy,pad:pad,iw:iw,ih:ih,xr:xr,yr:yr,id:id,base:b,W:W,H:H};
+  }
+  function curve(P,fn,cls){
+    var d="", n=240;
+    for(var i=0;i<=n;i++){
+      var x=P.xr[0]+(P.xr[1]-P.xr[0])*i/n;
+      d+=(i?"L":"M")+N(P.sx(x))+" "+N(P.sy(fn(x)));
+    }
+    return '<path class="'+cls+'" fill="none" d="'+d+'"/>';
+  }
+  function lineSlope(P,m,x0,y0,cls){
+    var a=P.xr[0], b=P.xr[1];
+    return '<line class="'+cls+'" x1="'+N(P.sx(a))+'" y1="'+N(P.sy(y0+m*(a-x0)))+'" x2="'+N(P.sx(b))+'" y2="'+N(P.sy(y0+m*(b-x0)))+'"/>';
+  }
+  function vline(P,x){
+    return '<line class="guide" x1="'+N(P.sx(x))+'" y1="'+P.pad.t+'" x2="'+N(P.sx(x))+'" y2="'+(P.pad.t+P.ih)+'"/>';
+  }
+  function svg(P,label,clipped,free){
+    return '<svg width="'+P.W+'" height="'+P.H+'" viewBox="0 0 '+P.W+' '+P.H+'" role="img" aria-label="'+label+'">'+
+      P.base+'<g clip-path="url(#'+P.id+')">'+clipped+'</g>'+free+'</svg>';
+  }
+  function dot(P,x,y,cls){
+    return '<circle class="pt '+cls+'" cx="'+N(P.sx(x))+'" cy="'+N(P.sy(y))+'" r="6" fill="var(--surface)"/>';
+  }
+
+  /* ---------- figura 1: secante e tangente ---------- */
+  var plot1=$("plot1"), x0el=$("x0"), hel=$("hs");
+  function hOf(v){ return Math.max(0.01, Math.round(1.5*Math.exp(-5.0106*v/100)*100)/100); }
+  function draw1(){
+    var W=Math.max(280,plot1.clientWidth), H=Math.round(Math.min(380,Math.max(250,W*0.6)));
+    var P=frame(W,H,[-1,4],[-1.5,17],"c1");
+    var x0=+x0el.value, h=hOf(+hel.value);
+    var y0=x0*x0, x1=x0+h, y1=x1*x1, m=(y1-y0)/h;
+    var px=P.sx(x0), py=P.sy(y0), qx=P.sx(x1), qy=P.sy(y1);
+    var cl=curve(P,function(x){return x*x;},"cv")+lineSlope(P,2*x0,x0,y0,"tan")+
+      '<line class="guide" x1="'+N(px)+'" y1="'+N(py)+'" x2="'+N(qx)+'" y2="'+N(py)+'"/>'+
+      '<line class="guide" x1="'+N(qx)+'" y1="'+N(py)+'" x2="'+N(qx)+'" y2="'+N(qy)+'"/>'+
+      lineSlope(P,m,x0,y0,"sec");
+    var fr='<text class="lbl b" x="'+(P.pad.l+8)+'" y="'+(P.pad.t+20)+'">f(x) = x²</text>';
+    if(qx-px>30) fr+='<text class="tk2" x="'+N((px+qx)/2)+'" y="'+N(py+17)+'" text-anchor="middle">h</text>';
+    if(py-qy>30){
+      var left=x1>3;
+      fr+='<text class="tk2" x="'+N(qx+(left?-8:8))+'" y="'+N((py+qy)/2+4)+'" text-anchor="'+(left?"end":"start")+'">Δy</text>';
+    }
+    fr+=dot(P,x0,y0,"pt-b")+'<text class="lbl" x="'+N(px-16)+'" y="'+N(py-10)+'">P</text>';
+    fr+=dot(P,x1,y1,"pt-r");
+    if(Math.hypot(qx-px,qy-py)>26) fr+='<text class="lbl r" x="'+N(qx-16)+'" y="'+N(qy-10)+'">Q</text>';
+    plot1.innerHTML=svg(P,"Grafico della parabola y = x² con la retta secante per P e Q e la tangente in P",cl,fr);
+
+    $("x0v").textContent=f1(x0);
+    $("hv").textContent=f2(h);
+    $("s-sec").textContent=f2(m);
+    $("s-tan").textContent=f2(2*x0);
+    $("calc").textContent="("+f4(y1)+" − "+f4(y0)+") ÷ "+f2(h)+" = "+f2(m);
+    [1,0.5,0.1,0.01].forEach(function(hh,i){
+      var s=((x0+hh)*(x0+hh)-y0)/hh;
+      $("t"+i).textContent=f2(s);
+    });
+    $("t4").textContent=f2(2*x0);
+  }
+  var raf=0;
+  var reduced=window.matchMedia&&window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  $("go").addEventListener("click",function(){
+    cancelAnimationFrame(raf);
+    if(reduced){ hel.value=100; draw1(); return; }
+    var from=+hel.value; if(from>=99) from=0;
+    var start=performance.now(), dur=3600;
+    (function step(t){
+      var k=Math.min(1,(t-start)/dur);
+      hel.value=from+(100-from)*k; draw1();
+      if(k<1) raf=requestAnimationFrame(step);
+    })(start);
+  });
+  $("back").addEventListener("click",function(){ cancelAnimationFrame(raf); hel.value=0; draw1(); });
+  x0el.addEventListener("input",draw1);
+  hel.addEventListener("input",function(){ cancelAnimationFrame(raf); draw1(); });
+
+  /* ---------- figura 2: segno della derivata ---------- */
+  var FUNS={
+    quad:{label:"x²",dx:"2x",f:function(x){return x*x;},d:function(x){return 2*x;},xr:[-3,3],x0:1},
+    cubic:{label:"x³ − 3x",dx:"3x² − 3",f:function(x){return x*x*x-3*x;},d:function(x){return 3*x*x-3;},xr:[-2.5,2.5],x0:1.5},
+    sin:{label:"sin x",dx:"cos x",f:Math.sin,d:Math.cos,xr:[-6.3,6.3],x0:1},
+    exp:{label:"eˣ",dx:"eˣ",f:Math.exp,d:Math.exp,xr:[-3,3],x0:0.5}
+  };
+  function rng(fn,xr){
+    var lo=Infinity,hi=-Infinity;
+    for(var i=0;i<=300;i++){ var v=fn(xr[0]+(xr[1]-xr[0])*i/300); if(v<lo)lo=v; if(v>hi)hi=v; }
+    var p=(hi-lo)*0.12||1; return [lo-p,hi+p];
+  }
+  Object.keys(FUNS).forEach(function(k){ var F=FUNS[k]; F.ya=rng(F.f,F.xr); F.yb=rng(F.d,F.xr); });
+
+  var sel=$("fsel"), xs=$("xs"), exA=$("plotA"), exB=$("plotB");
+  function drawEx(){
+    var F=FUNS[sel.value], x=+xs.value, fx=F.f(x), dx=F.d(x);
+    var W=Math.max(280,exA.clientWidth);
+    var HA=Math.round(Math.min(300,Math.max(210,W*0.46))), HB=Math.round(HA*0.7);
+    var PA=frame(W,HA,F.xr,F.ya,"cA"), PB=frame(W,HB,F.xr,F.yb,"cB");
+    var clA=curve(PA,F.f,"cv")+lineSlope(PA,dx,x,fx,"tan")+vline(PA,x);
+    var frA='<text class="lbl b" x="'+(PA.pad.l+8)+'" y="'+(PA.pad.t+20)+'">f(x) = '+F.label+'</text>'+dot(PA,x,fx,"pt-b");
+    exA.innerHTML=svg(PA,"Grafico della funzione "+F.label+" con la tangente nel punto scelto",clA,frA);
+    var clB=curve(PB,F.d,"cv2")+vline(PB,x);
+    var frB='<text class="lbl r" x="'+(PB.pad.l+8)+'" y="'+(PB.pad.t+20)+'">f′(x) = '+F.dx+'</text>'+dot(PB,x,dx,"pt-r");
+    exB.innerHTML=svg(PB,"Grafico della derivata di "+F.label,clB,frB);
+
+    $("xv").textContent=f2(x);
+    $("e-x").textContent=f2(x);
+    $("e-f").textContent=f2(fx);
+    $("e-d").textContent=f2(dx);
+    var pill=$("pill"), hint=$("hint");
+    if(dx>0.03){ pill.className="pill up"; pill.textContent="↗ f sale"; hint.textContent="La derivata è positiva: la tangente sale verso destra."; }
+    else if(dx<-0.03){ pill.className="pill down"; pill.textContent="↘ f scende"; hint.textContent="La derivata è negativa: la tangente scende verso destra."; }
+    else { pill.className="pill flat"; pill.textContent="→ tangente orizzontale"; hint.textContent="La derivata è circa zero. Qui può esserci un massimo, un minimo o un punto di flesso."; }
+  }
+  function setFn(){
+    var F=FUNS[sel.value];
+    xs.min=F.xr[0]; xs.max=F.xr[1]; xs.value=F.x0;
+    drawEx();
+  }
+  sel.addEventListener("change",setFn);
+  xs.addEventListener("input",drawEx);
+
+  /* ---------- quiz ---------- */
+  var QUIZ=[
+    {q:"Qual è la derivata di x⁴?",o:["x³","4x³","4x⁴","3x⁴"],a:1,e:"L’esponente scende davanti e diminuisce di uno: 4·x³."},
+    {q:"Qual è la derivata di 5x² − 3x + 2?",o:["5x − 3","10x + 2","10x − 3","10x − 3 + 2"],a:2,e:"5x² diventa 10x, −3x diventa −3 e il numero fisso 2 diventa 0."},
+    {q:"Se f′(x) è negativa in un intervallo, in quell’intervallo f è…",o:["decrescente","crescente","costante","sempre uguale a zero"],a:0,e:"Derivata negativa significa tangente che scende: la funzione decresce."},
+    {q:"Qual è la derivata di sin x?",o:["−cos x","−sin x","sin x","cos x"],a:3,e:"È una derivata da conoscere: (sin x)′ = cos x."},
+    {q:"Qual è la derivata di (3x + 2)²?",o:["2(3x + 2)","6(3x + 2)","3(3x + 2)","6x"],a:1,e:"Funzione composta: 2(3x + 2) per la derivata dell’interna, che è 3. Il risultato è 6(3x + 2)."}
+  ];
+  var qz=$("quiz"), done=[], score=0, answered=0;
+  function buildQuiz(){
+    qz.innerHTML=""; done=QUIZ.map(function(){return false;}); score=0; answered=0; updateScore();
+    QUIZ.forEach(function(it,qi){
+      var fs=document.createElement("fieldset");
+      fs.innerHTML='<legend>Domanda '+(qi+1)+'. '+it.q+'</legend><div class="opts">'+
+        it.o.map(function(t,oi){ return '<button type="button" class="opt" id="q'+qi+'o'+oi+'" data-q="'+qi+'" data-o="'+oi+'">'+t+'</button>'; }).join("")+
+        '</div><p class="fb" id="fb'+qi+'" role="status"></p>';
+      qz.appendChild(fs);
+    });
+  }
+  function updateScore(){ $("score").textContent="Risposte corrette: "+score+" su "+QUIZ.length+(answered?" (risposte date: "+answered+")":""); }
+  qz.addEventListener("click",function(ev){
+    var b=ev.target.closest("button.opt"); if(!b) return;
+    var qi=+b.dataset.q, oi=+b.dataset.o; if(done[qi]) return;
+    done[qi]=true; answered++;
+    var it=QUIZ[qi], ok=oi===it.a; if(ok) score++;
+    for(var k=0;k<it.o.length;k++){ var bt=$("q"+qi+"o"+k); bt.disabled=true; }
+    b.classList.add(ok?"ok":"bad");
+    if(!ok) $("q"+qi+"o"+it.a).classList.add("ok");
+    $("fb"+qi).textContent=(ok?"Giusto. ":"Non proprio. ")+it.e;
+    updateScore();
+  });
+  $("reset").addEventListener("click",buildQuiz);
+
+  /* ---------- avvio e ridimensionamento ---------- */
+  buildQuiz();
+  draw1();
+  setFn();
+  var lastW=document.body.clientWidth;
+  function onResize(){
+    var w=document.body.clientWidth;
+    if(w!==lastW){ lastW=w; draw1(); drawEx(); }
+  }
+  if(window.ResizeObserver){ new ResizeObserver(onResize).observe(document.body); }
+  else { window.addEventListener("resize",onResize); }
+})();
+</script>
+
+</body></html>
