@@ -17,6 +17,5 @@ Repository della mini startup della classe 5E dell'ITIS Galileo Galilei.
 
 ## Strumenti
 
-- **Opencode** – aggiunto da Dario Paniceri, disponibile per l'uso di tutti.
 - [opencode](installazione_opencode/README.md)-guida all'istalazione del tool opencode nel terminale nel codespace
 - 
