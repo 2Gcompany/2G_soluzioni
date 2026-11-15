@@ -76,7 +76,6 @@ tr:hover td{background:#8b6cff18}
 #top.show{opacity:1;pointer-events:auto}
 footer{text-align:center;color:var(--muted);padding:30px 20px 60px;font-size:.85rem}
 </style>
-<script>document.documentElement.className="js"</script>
 </head>
 <body>
 <div id="bar"></div>
@@ -268,6 +267,8 @@ footer{text-align:center;color:var(--muted);padding:30px 20px 60px;font-size:.85
 Progetto didattico della classe 5E, ITIS Galileo Galilei.<br>
 Immagini fornite da <a href="https://ygoprodeck.com" style="color:var(--gold)">YGOPRODeck</a>. Yu-Gi-Oh! è un marchio di Konami.
 </footer>
+<div id="lb"><img alt=""><p></p></div>
+<button id="top" aria-label="Torna su">↑</button>
 <script>
 var API="https://db.ygoprodeck.com/api/v7/cardinfo.php?name=";
 var lb=document.getElementById("lb"),lbImg=lb.querySelector("img"),lbCap=lb.querySelector("p");
@@ -333,12 +334,11 @@ window.addEventListener("scroll",function(){
   top_.classList.toggle("show",h.scrollTop>600);
 });
 top_.addEventListener("click",function(){window.scrollTo({top:0,behavior:"smooth"})});
+document.documentElement.className="js";
 if("IntersectionObserver" in window){
   var io=new IntersectionObserver(function(en){en.forEach(function(x){if(x.isIntersecting){x.target.classList.add("in");io.unobserve(x.target)}})},{threshold:.08});
   document.querySelectorAll(".reveal").forEach(function(el){io.observe(el)});
 }else{document.querySelectorAll(".reveal").forEach(function(el){el.classList.add("in")})}
 </script>
-<div id="lb"><img alt=""><p></p></div>
-<button id="top" aria-label="Torna su">↑</button>
 </body>
 </html>
