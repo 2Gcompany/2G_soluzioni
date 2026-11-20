@@ -14,7 +14,7 @@ Repository della mini startup della classe 5E dell'ITIS Galileo Galilei.
   da scheda SD o fotocamera a un disco di backup; prototipo cliccabile.
 
 - [Braccio robotico](progetti/braccio-robotico/README.md) – simulazione di un braccio a tre giunti con pinza e comandi seriali per Arduino.
-- [stampante 3d]()-simulazione e spiegazione della stampa 3d
+- [stampante 3d](featureslezione-stampante3d/progetti)-simulazione e spiegazione della stampa 3d
 
 
 ## Strumenti
