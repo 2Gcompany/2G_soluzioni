@@ -1,0 +1,980 @@
+<!doctype html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="description" content="Layer Lab: percorso interattivo sulla stampa 3D (manifattura additiva) per la classe 4ª superiore.">
+<title>Layer Lab</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;700&family=JetBrains+Mono:wght@400;600&family=Unbounded:wght@600;800&display=swap">
+<style>
+/* Concept: the whole page is one print job. Every section is a layer (STRATO nn),
+   the top bar fills like a print progress bar, the hero sits on a build-plate grid. */
+:root{
+  --bg:#EDF0F2; --surface:#FFFFFF; --soft:#E2E7EB; --ink:#0F1720; --muted:#4F5B67; --line:#CBD3DA;
+  --accent:#FF6B1A; --accent-text:#B63F06; --cool:#007C8C; --ok:#1F7A2E; --bad:#C62828;
+  --f-display:'Unbounded','Arial Black',system-ui,sans-serif;
+  --f-body:'Figtree',system-ui,-apple-system,'Segoe UI',sans-serif;
+  --f-mono:'JetBrains Mono',ui-monospace,Menlo,Consolas,monospace;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#0B1016; --surface:#131B24; --soft:#1A242F; --ink:#E8EEF3; --muted:#9AA7B4; --line:#26323E;
+  --accent:#FF7A2E; --accent-text:#FF9A5C; --cool:#3DD6E8; --ok:#6BD66F; --bad:#FF7B7B; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0B1016; --surface:#131B24; --soft:#1A242F; --ink:#E8EEF3; --muted:#9AA7B4; --line:#26323E;
+  --accent:#FF7A2E; --accent-text:#FF9A5C; --cool:#3DD6E8; --ok:#6BD66F; --bad:#FF7B7B; color-scheme:dark}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth;scroll-padding-top:5rem}
+body{margin:0;background:var(--bg);color:var(--ink);font:400 16px/1.6 var(--f-body);-webkit-text-size-adjust:100%}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);background:var(--surface);z-index:30}
+h1,h2,h3{font-family:var(--f-display);line-height:1.12;margin:0;text-wrap:balance;overflow-wrap:anywhere}
+h2{font-size:clamp(1.55rem,4.6vw,2.5rem);font-weight:800;letter-spacing:-.01em}
+h3{font-size:1.05rem;font-weight:600}
+p{margin:0 0 1em;max-width:68ch}
+a{color:var(--accent-text)}
+code,.mono{font-family:var(--f-mono);font-size:.88em}
+.wrap{max-width:1120px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+:focus-visible{outline:3px solid var(--cool);outline-offset:2px;border-radius:4px}
+
+/* top bar */
+.topbar{position:sticky;top:env(safe-area-inset-top,0px);z-index:20;background:var(--surface);border-bottom:1px solid var(--line)}
+.topbar .wrap{display:flex;align-items:center;gap:.9rem;padding-block:.6rem}
+.brand{font:800 .85rem var(--f-display);letter-spacing:.04em;white-space:nowrap;text-decoration:none;color:var(--ink)}
+.brand i{font-style:normal;color:var(--accent-text)}
+.prog{flex:1;min-width:0}
+.prog-top{display:flex;justify-content:space-between;gap:.5rem;font:600 .68rem var(--f-mono);color:var(--muted);text-transform:uppercase;letter-spacing:.06em}
+.track{height:8px;background:var(--soft);border-radius:4px;overflow:hidden;margin-top:3px}
+.track b{display:block;height:100%;width:0;background:var(--accent);transition:width .15s linear}
+.xp{font:600 .72rem var(--f-mono);padding:.3rem .6rem;border:1px solid var(--line);border-radius:999px;white-space:nowrap}
+.icon-btn{display:inline-flex;align-items:center;justify-content:center;flex:none;background:none;border:1px solid var(--line);color:var(--ink);border-radius:8px;width:34px;height:34px;cursor:pointer;font-size:1rem;line-height:1}
+@media(max-width:560px){.brand{display:none}.xp{font-size:.66rem;padding:.25rem .45rem}}
+
+/* hero */
+.hero{position:relative;padding-block:3rem 2.5rem;border-bottom:1px solid var(--line);
+  background-image:linear-gradient(var(--line) 1px,transparent 1px),linear-gradient(90deg,var(--line) 1px,transparent 1px);
+  background-size:32px 32px;background-position:-1px -1px}
+.hero::after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,transparent 55%,var(--bg));pointer-events:none}
+.hero .wrap{position:relative;z-index:1;display:grid;grid-template-columns:1.1fr .9fr;gap:2rem;align-items:center}
+.hero h1{font-size:clamp(2.7rem,10vw,5.6rem);font-weight:800;letter-spacing:-.03em}
+.hero h1 span{color:var(--accent-text)}
+.lead{font-size:1.15rem;color:var(--muted);margin-top:1.2rem}
+.hero-actions{display:flex;flex-wrap:wrap;gap:.7rem;margin-top:1.4rem}
+.stage{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:.6rem;min-width:0}
+.stage canvas{display:block;width:100%;height:auto;aspect-ratio:1/1.05}
+.stage-cap{display:flex;justify-content:space-between;font:600 .7rem var(--f-mono);color:var(--muted);padding:.4rem .3rem 0}
+@media(max-width:820px){.hero .wrap{grid-template-columns:1fr}}
+
+/* sections */
+.layer{padding-block:4rem;border-top:1px dashed var(--line)}
+.tag{display:inline-flex;flex-wrap:wrap;gap:.4rem .6rem;align-items:center;font:600 .72rem var(--f-mono);letter-spacing:.1em;text-transform:uppercase;color:var(--accent-text);margin-bottom:.9rem}
+.tag em{white-space:nowrap;font-style:normal;background:var(--ink);color:var(--bg);padding:.12rem .45rem;border-radius:4px}
+.sec-head{display:grid;gap:1rem;margin-bottom:2rem;max-width:760px}
+.sec-head p{color:var(--muted);font-size:1.05rem;margin:0}
+.mission{display:flex;gap:.6rem;align-items:center;font:600 .78rem var(--f-mono);color:var(--muted);margin-top:.2rem}
+.mission::before{content:"";width:14px;height:14px;border:2px solid var(--muted);border-radius:4px;flex:none}
+.mission.done{color:var(--ok)}
+.mission.done::before{background:var(--ok);border-color:var(--ok);box-shadow:inset 0 0 0 2px var(--surface)}
+
+/* generic parts */
+.grid{display:grid;gap:1rem}
+.g2{grid-template-columns:repeat(2,minmax(0,1fr))}
+.g3{grid-template-columns:repeat(3,minmax(0,1fr))}
+.g4{grid-template-columns:repeat(4,minmax(0,1fr))}
+@media(max-width:860px){.g3,.g4{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:600px){.g2,.g3,.g4{grid-template-columns:minmax(0,1fr)}}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:1.2rem;min-width:0}
+.card p:last-child{margin-bottom:0}
+.card h3{margin-bottom:.5rem}
+.quote{border-left:4px solid var(--accent);padding:.4rem 0 .4rem 1.1rem;font-size:1.08rem;max-width:70ch}
+.quote small{display:block;margin-top:.5rem;font:600 .72rem var(--f-mono);color:var(--muted);letter-spacing:.04em}
+.btn{font:700 .92rem var(--f-body);background:var(--accent);color:#111;border:0;border-radius:8px;padding:.7rem 1.1rem;cursor:pointer;min-height:44px;text-decoration:none;display:inline-flex;align-items:center;justify-content:center}
+.btn:hover{filter:brightness(1.07)}
+.btn.ghost{background:transparent;color:var(--ink);border:1.5px solid var(--ink)}
+.chips{display:flex;flex-wrap:wrap;gap:.5rem}
+.chip{font:600 .82rem var(--f-body);background:var(--surface);color:var(--ink);border:1.5px solid var(--line);border-radius:999px;padding:.45rem .9rem;cursor:pointer;min-height:40px}
+.chip[aria-pressed="true"],.chip[aria-selected="true"]{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.chip:hover{border-color:var(--ink)}
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:1.2rem;min-width:0}
+.lab{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,1fr);gap:1.2rem;align-items:start}
+@media(max-width:860px){.lab{grid-template-columns:minmax(0,1fr)}}
+.kicker{font:600 .7rem var(--f-mono);letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.big{font:800 1.6rem var(--f-display);font-variant-numeric:tabular-nums;overflow-wrap:anywhere}
+.stat{background:var(--soft);border-radius:10px;padding:.8rem .9rem;min-width:0}
+.stat .big{margin-top:.2rem;font-size:1.3rem}
+.stat small{color:var(--muted);font-size:.78rem}
+.note{font-size:.85rem;color:var(--muted)}
+.hint{background:var(--soft);border-radius:10px;padding:.8rem 1rem;font-size:.95rem}
+.hint b{color:var(--accent-text)}
+
+/* controls */
+.ctl{display:grid;gap:.25rem;margin-bottom:1rem}
+.ctl label{display:flex;justify-content:space-between;gap:1rem;font-weight:700;font-size:.9rem}
+.ctl label output{font:600 .85rem var(--f-mono);color:var(--accent-text)}
+input[type=range]{-webkit-appearance:none;appearance:none;width:100%;height:28px;margin:0;background:transparent;cursor:pointer}
+input[type=range]::-webkit-slider-runnable-track{height:8px;border-radius:4px;background:var(--line)}
+input[type=range]::-moz-range-track{height:8px;border-radius:4px;background:var(--line)}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:16px;height:16px;border-radius:50%;background:var(--accent);border:3px solid var(--ink);margin-top:-7px}
+input[type=range]::-moz-range-thumb{width:16px;height:16px;border-radius:50%;background:var(--accent);border:3px solid var(--ink)}
+textarea{width:100%;min-height:210px;resize:vertical;background:var(--soft);color:var(--ink);border:1px solid var(--line);border-radius:10px;padding:.8rem;font:400 .85rem/1.5 var(--f-mono)}
+
+/* bars */
+.bar-row{display:grid;grid-template-columns:7.5rem minmax(0,1fr) 4.5rem;gap:.7rem;align-items:center;margin:.55rem 0;font-size:.88rem}
+.bar-bg{height:14px;background:var(--soft);border-radius:7px;overflow:hidden}
+.bar-bg b{display:block;height:100%;background:var(--cool);border-radius:7px;transition:width .45s cubic-bezier(.2,.8,.2,1)}
+.bar-bg b.o{background:var(--accent)}
+.bar-row span:last-child{font:600 .8rem var(--f-mono);text-align:right}
+@media(max-width:480px){.bar-row{grid-template-columns:5.2rem minmax(0,1fr) 3.6rem}}
+
+/* tabs, steps, tables */
+.tabs{display:flex;flex-wrap:wrap;gap:.5rem;margin-bottom:1rem}
+.steps{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:.4rem;margin-bottom:1rem}
+.step{font:600 .72rem var(--f-mono);text-align:center;background:var(--surface);color:var(--ink);border:1.5px solid var(--line);border-radius:8px;padding:.7rem .2rem;cursor:pointer;min-height:56px;overflow-wrap:anywhere}
+.step[aria-selected="true"]{background:var(--accent);color:#111;border-color:var(--accent)}
+.step b{display:block;font-size:1.05rem;margin-bottom:.15rem}
+@media(max-width:700px){.steps{grid-template-columns:repeat(4,minmax(0,1fr))}}
+.scroll-x{overflow-x:auto}
+table{border-collapse:collapse;width:100%;font-size:.9rem}
+th,td{text-align:left;padding:.55rem .7rem;border-bottom:1px solid var(--line);vertical-align:top}
+th{font:600 .7rem var(--f-mono);text-transform:uppercase;letter-spacing:.06em;color:var(--muted)}
+td:first-child{font-family:var(--f-mono);font-weight:600;white-space:nowrap}
+
+/* anatomy */
+#anatomy{width:100%;height:auto;display:block;background:var(--soft);border-radius:10px}
+#anatomy .part{cursor:pointer}
+#anatomy .part .hit{fill:transparent;stroke:none}
+#anatomy .part:hover .hit,#anatomy .part:focus-visible .hit,#anatomy .part.on .hit{fill:var(--accent);fill-opacity:.22;stroke:var(--accent);stroke-width:2;stroke-dasharray:5 4}
+#anatomy .part.seen .pin{fill:var(--ok)}
+.pin{fill:var(--accent)}
+.pinn{font:700 11px var(--f-mono);fill:#111;text-anchor:middle;pointer-events:none}
+
+/* quiz / game feedback */
+.opt{display:block;width:100%;text-align:left;background:var(--surface);color:var(--ink);border:1.5px solid var(--line);border-radius:10px;padding:.8rem 1rem;margin-top:.6rem;font:500 .95rem var(--f-body);cursor:pointer;min-height:48px}
+.opt:hover:not(:disabled){border-color:var(--ink)}
+.opt.ok{border-color:var(--ok);background:color-mix(in srgb,var(--ok) 14%,var(--surface))}
+.opt.bad{border-color:var(--bad);background:color-mix(in srgb,var(--bad) 14%,var(--surface))}
+.opt:disabled{cursor:default}
+.fb{margin-top:.9rem;padding:.8rem 1rem;border-radius:10px;background:var(--soft);font-size:.95rem}
+.shake{animation:shake .35s}
+@keyframes shake{25%{transform:translateX(-6px)}75%{transform:translateX(6px)}}
+.pill{display:inline-block;font:600 .68rem var(--f-mono);padding:.15rem .5rem;border-radius:999px;background:var(--soft);color:var(--muted);letter-spacing:.04em}
+.rank{font:800 clamp(1.5rem,5vw,2.4rem) var(--f-display);color:var(--accent-text)}
+.vote{display:flex;gap:.5rem;margin-top:.8rem}
+.vote .btn{flex:1;font-size:.85rem;padding:.5rem}
+footer{padding-block:3rem;border-top:1px solid var(--line);color:var(--muted);font-size:.9rem}
+@media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important;scroll-behavior:auto!important}}
+</style>
+</head>
+<body>
+<header class="topbar">
+  <div class="wrap">
+    <a class="brand" href="#top">LAYER<i>/</i>LAB</a>
+    <div class="prog" aria-live="off">
+      <div class="prog-top"><span id="layerNow">Strato 00 / 11</span><span id="pct">0%</span></div>
+      <div class="track"><b id="bar"></b></div>
+    </div>
+    <span class="xp" id="xp" title="Missioni completate">Missioni 0/10</span>
+    <button class="icon-btn" id="themeBtn" type="button" aria-label="Cambia tema chiaro o scuro"><svg width="18" height="18" viewBox="0 0 18 18" aria-hidden="true"><circle cx="9" cy="9" r="7" fill="none" stroke="currentColor" stroke-width="2"/><path d="M9 2a7 7 0 0 1 0 14z" fill="currentColor"/></svg></button>
+  </div>
+</header>
+
+<main id="top">
+<section class="hero">
+  <div class="wrap">
+    <div>
+      <div class="tag"><em>Stampa in corso</em> percorso per la 4ª superiore</div>
+      <h1>Layer<br><span>Lab</span></h1>
+      <p class="lead">La stampa 3D si chiama, nel linguaggio dell'industria, <strong>manifattura additiva</strong>. Un oggetto nasce aggiungendo materiale, uno strato sottile alla volta, seguendo un modello digitale. Questa pagina è una stampa: scorri e i tuoi strati si accumulano.</p>
+      <div class="hero-actions">
+        <a class="btn" href="#s1">Avvia il percorso</a>
+        <button class="btn ghost" id="heroReplay" type="button">Ristampa l'oggetto</button>
+      </div>
+    </div>
+    <div>
+      <div class="stage">
+        <canvas id="heroCanvas" width="640" height="672" role="img" aria-label="Animazione: un ugello costruisce un vaso strato dopo strato"></canvas>
+        <div class="stage-cap"><span id="heroLayer">Strato 0 / 0</span><span id="heroInfo">Ugello 210 °C · Piatto 60 °C</span></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- STRATO 01 -->
+<section class="layer" id="s1" data-name="Dossier">
+  <div class="wrap">
+    <div class="sec-head">
+      <div class="tag"><em>Strato 01</em> Il quadro generale</div>
+      <h2>Che cos'è davvero la manifattura additiva</h2>
+      <p>Prima di parlare di macchine e plastica colorata, serve capire dove si colloca la stampa 3D tra i modi di fabbricare un oggetto. Sono tre famiglie, e la differenza sta in cosa succede al materiale.</p>
+      <div class="mission" id="m-s1">Missione: muovi il cursore della complessità e viaggia nel tempo fino a «Oggi»</div>
+    </div>
+
+    <blockquote class="quote">
+      Processo che unisce materiali per realizzare oggetti a partire dai dati di un modello 3D, di norma strato su strato, in contrapposizione ai metodi sottrattivi e formativi.
+      <small>SINTESI DELLA DEFINIZIONE DI MANIFATTURA ADDITIVA · NORMA ISO/ASTM 52900</small>
+    </blockquote>
+
+    <div class="grid g3" style="margin-block:1.6rem">
+      <div class="card"><span class="pill">SOTTRATTIVA</span><h3 style="margin-top:.7rem">Si toglie</h3><p>Parti da un blocco pieno e asporti materiale: fresa, tornio, taglio laser. Quello che rimuovi diventa truciolo.</p></div>
+      <div class="card"><span class="pill">FORMATIVA</span><h3 style="margin-top:.7rem">Si dà forma</h3><p>Il materiale prende la forma di uno stampo: fusione, stampaggio a iniezione, forgiatura. Lo stampo costa, ma poi si produce in serie.</p></div>
+      <div class="card"><span class="pill">ADDITIVA</span><h3 style="margin-top:.7rem">Si aggiunge</h3><p>Il materiale viene depositato o fuso solo dove serve, strato dopo strato. Niente stampo, il file è l'utensile.</p></div>
+    </div>
+
+    <div class="lab">
+      <div class="panel">
+        <div class="kicker">Laboratorio 1 · Quanto materiale serve?</div>
+        <h3 style="margin:.4rem 0 1rem">Stesso pezzo finito da 100 g, due modi di farlo</h3>
+        <div class="ctl">
+          <label for="cplx">Complessità della forma <output id="cplxOut">5 / 10</output></label>
+          <input type="range" id="cplx" min="1" max="10" value="5">
+        </div>
+        <div class="bar-row"><span>Pezzo finito</span><div class="bar-bg"><b class="o" id="bFin" style="width:10%"></b></div><span id="vFin">100 g</span></div>
+        <div class="bar-row"><span>Fresa CNC</span><div class="bar-bg"><b id="bSub"></b></div><span id="vSub"></span></div>
+        <div class="bar-row"><span>Stampa 3D</span><div class="bar-bg"><b id="bAdd"></b></div><span id="vAdd"></span></div>
+        <p class="note" style="margin-top:.8rem">Esempio didattico con valori indicativi: nella realtà dipende da forma, materiale e macchina. La tendenza però è reale, più la forma è intricata, più la fresa scarta.</p>
+      </div>
+      <div class="panel">
+        <div class="kicker">Cosa osservi</div>
+        <p id="cplxText" style="margin-top:.6rem"></p>
+        <div class="hint"><b>Attenzione.</b> Additivo non significa sempre migliore. Per mille pezzi identici e semplici, lo stampaggio resta molto più veloce ed economico. La stampa 3D vince su pezzi unici, complessi, personalizzati o su piccole serie.</div>
+      </div>
+    </div>
+
+    <div class="panel" style="margin-top:1.2rem">
+      <div class="kicker">Laboratorio 2 · La macchina del tempo</div>
+      <div class="lab" style="margin-top:.8rem;align-items:center">
+        <div>
+          <div class="big" id="yrYear" style="font-size:2.4rem;color:var(--accent-text)"></div>
+          <input type="range" id="yr" min="0" max="7" value="0" aria-label="Scegli un momento della storia della stampa 3D">
+          <div class="note" style="margin-top:.4rem">Trascina per attraversare quarant'anni di storia.</div>
+        </div>
+        <div>
+          <h3 id="yrTitle"></h3>
+          <p id="yrText" style="margin-top:.5rem"></p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- STRATO 02 -->
+<section class="layer" id="s2" data-name="Dal file all'oggetto">
+  <div class="wrap">
+    <div class="sec-head">
+      <div class="tag"><em>Strato 02</em> Il flusso di lavoro</div>
+      <h2>Dal bit all'atomo in sette passaggi</h2>
+      <p>Nessuno preme "stampa" su un'idea. Tra la testa e il piatto caldo c'è una catena di trasformazioni, ognuna con il suo formato di file. Clicca i passaggi per scoprirli, poi mettiti alla prova.</p>
+      <div class="mission" id="m-s2">Missione: rimetti in ordine i sette passaggi senza errori</div>
+    </div>
+    <div class="steps" id="pipeSteps" role="tablist" aria-label="Passaggi del flusso di lavoro"></div>
+    <div class="card" id="pipeDetail" aria-live="polite"></div>
+
+    <div class="panel" style="margin-top:1.2rem">
+      <div class="kicker">Gioco · Rimetti in ordine</div>
+      <p style="margin:.5rem 0 .8rem">Tocca i passaggi nell'ordine giusto, dal primo all'ultimo.</p>
+      <div class="chips" id="sortPool"></div>
+      <div class="hint" id="sortOut" style="margin-top:.9rem" aria-live="polite">Prossimo: ?</div>
+    </div>
+  </div>
+</section>
+
+<!-- STRATO 03 -->
+<section class="layer" id="s3" data-name="Anatomia">
+  <div class="wrap">
+    <div class="sec-head">
+      <div class="tag"><em>Strato 03</em> Hardware</div>
+      <h2>Anatomia di una stampante FDM</h2>
+      <p>La più diffusa nelle scuole e nei garage è la FDM (Fused Deposition Modeling): scalda un filo di plastica e lo spalma dove serve. Tocca i punti numerati per smontarla pezzo per pezzo.</p>
+      <div class="mission" id="m-s3">Missione: scopri tutte le 8 parti</div>
+    </div>
+    <div class="lab">
+      <div class="panel">
+        <svg id="anatomy" viewBox="0 0 520 440" role="group" aria-label="Schema di una stampante 3D FDM con otto parti selezionabili">
+          <!-- base e telaio -->
+          <rect x="60" y="392" width="400" height="24" rx="4" fill="var(--ink)"/>
+          <rect x="82" y="86" width="22" height="306" fill="var(--muted)"/>
+          <rect x="416" y="86" width="22" height="306" fill="var(--muted)"/>
+          <rect x="82" y="62" width="356" height="24" rx="3" fill="var(--ink)"/>
+          <!-- bobina -->
+          <circle cx="260" cy="30" r="24" fill="var(--cool)"/><circle cx="260" cy="30" r="9" fill="var(--soft)"/>
+          <path d="M260 54 C260 70 300 74 300 106" fill="none" stroke="var(--cool)" stroke-width="3"/>
+          <!-- asse X -->
+          <rect x="104" y="148" width="312" height="12" rx="3" fill="var(--ink)"/>
+          <!-- carrello + extruder + hotend -->
+          <rect x="278" y="128" width="46" height="52" rx="5" fill="var(--surface)" stroke="var(--ink)" stroke-width="3"/>
+          <rect x="324" y="132" width="30" height="30" rx="4" fill="var(--muted)"/>
+          <rect x="283" y="180" width="36" height="26" fill="var(--accent)"/>
+          <polygon points="289,206 313,206 301,226" fill="var(--ink)"/>
+          <path d="M296 232 q5 8 10 0" stroke="var(--accent)" stroke-width="3" fill="none"/>
+          <!-- oggetto in stampa -->
+          <rect x="262" y="318" width="80" height="46" fill="var(--cool)" opacity=".85"/>
+          <rect x="268" y="264" width="68" height="54" fill="var(--cool)" opacity=".55"/>
+          <!-- piatto -->
+          <rect x="150" y="364" width="300" height="12" rx="3" fill="var(--accent)"/>
+          <rect x="150" y="376" width="300" height="10" fill="var(--ink)" opacity=".65"/>
+          <!-- parti cliccabili -->
+          <g class="part" data-part="spool" tabindex="0" role="button" aria-label="1 Bobina di filamento"><circle class="hit" cx="260" cy="30" r="32"/><circle class="pin" cx="214" cy="30" r="11"/><text class="pinn" x="214" y="34">1</text></g>
+          <g class="part" data-part="extruder" tabindex="0" role="button" aria-label="2 Estrusore"><rect class="hit" x="276" y="124" width="82" height="60" rx="6"/><circle class="pin" cx="372" cy="146" r="11"/><text class="pinn" x="372" y="150">2</text></g>
+          <g class="part" data-part="hotend" tabindex="0" role="button" aria-label="3 Hotend"><rect class="hit" x="278" y="176" width="46" height="34" rx="4"/><circle class="pin" cx="344" cy="194" r="11"/><text class="pinn" x="344" y="198">3</text></g>
+          <g class="part" data-part="nozzle" tabindex="0" role="button" aria-label="4 Ugello"><rect class="hit" x="282" y="204" width="38" height="36" rx="4"/><circle class="pin" cx="344" cy="232" r="11"/><text class="pinn" x="344" y="236">4</text></g>
+          <g class="part" data-part="xaxis" tabindex="0" role="button" aria-label="5 Assi di movimento"><rect class="hit" x="104" y="122" width="170" height="44" rx="4"/><circle class="pin" cx="170" cy="120" r="11"/><text class="pinn" x="170" y="124">5</text></g>
+          <g class="part" data-part="bed" tabindex="0" role="button" aria-label="6 Piatto riscaldato"><rect class="hit" x="146" y="358" width="308" height="32" rx="4"/><circle class="pin" cx="170" cy="342" r="11"/><text class="pinn" x="170" y="346">6</text></g>
+          <g class="part" data-part="motor" tabindex="0" role="button" aria-label="7 Motori passo-passo"><rect class="hit" x="72" y="236" width="40" height="60" rx="4"/><circle class="pin" cx="62" cy="266" r="11"/><text class="pinn" x="62" y="270">7</text></g>
+          <g class="part" data-part="board" tabindex="0" role="button" aria-label="8 Scheda di controllo"><rect class="hit" x="408" y="236" width="42" height="60" rx="4"/><circle class="pin" cx="462" cy="266" r="11"/><text class="pinn" x="462" y="270">8</text></g>
+        </svg>
+        <p class="note" style="margin:.6rem 0 0">Schema semplificato di una macchina cartesiana. <span id="seenCount">0</span> / 8 parti scoperte.</p>
+      </div>
+      <div class="panel" id="partInfo" aria-live="polite">
+        <div class="kicker">Seleziona una parte</div>
+        <h3 style="margin:.5rem 0">Parti dal punto 1</h3>
+        <p>Ogni numero nasconde un componente. Trovane il ruolo, la temperatura di lavoro o l'errore tipico che gli studenti commettono.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- STRATO 04 -->
+<section class="layer" id="s4" data-name="G-code">
+  <div class="wrap">
+    <div class="sec-head">
+      <div class="tag"><em>Strato 04</em> Il linguaggio della macchina</div>
+      <h2>G-code: parla con la stampante</h2>
+      <p>La stampante non conosce i modelli 3D. Legge un lungo elenco di righe di testo, ognuna con un comando e delle coordinate. Qui sotto puoi scriverle tu e vedere il percorso dell'ugello. Cambia i numeri e premi Esegui.</p>
+      <div class="mission" id="m-s4">Missione: esegui il G-code almeno 3 volte (prova anche un tuo disegno)</div>
+    </div>
+    <div class="lab">
+      <div class="panel">
+        <div class="chips" id="gcPresets" style="margin-bottom:.8rem" aria-label="Esempi di G-code"></div>
+        <label for="gcode" class="kicker">Il tuo G-code (X e Y in millimetri)</label>
+        <textarea id="gcode" spellcheck="false" style="margin-top:.4rem"></textarea>
+        <div class="chips" style="margin-top:.8rem">
+          <button class="btn" id="gcRun" type="button">Esegui e anima</button>
+          <button class="btn ghost" id="gcInstant" type="button">Mostra tutto</button>
+        </div>
+      </div>
+      <div class="panel">
+        <canvas id="gcCanvas" width="560" height="560" style="width:100%;height:auto;display:block;background:var(--soft);border-radius:10px" role="img" aria-label="Percorso dell'ugello sul piatto"></canvas>
+        <div class="chips" style="margin-top:.7rem;font-size:.82rem">
+          <span><b style="color:var(--accent-text)">━</b> estrusione (G1 con E)</span>
+          <span><b style="color:var(--cool)">┅</b> spostamento a vuoto</span>
+        </div>
+        <div class="grid g3" style="margin-top:.8rem;gap:.6rem">
+          <div class="stat"><div class="kicker">Righe</div><div class="big" id="gcLines">0</div></div>
+          <div class="stat"><div class="kicker">Percorso</div><div class="big" id="gcLen">0 mm</div></div>
+          <div class="stat"><div class="kicker">Filamento</div><div class="big" id="gcE">0 mm</div></div>
+        </div>
+        <p class="note" id="gcMsg" style="margin:.7rem 0 0" aria-live="polite"></p>
+      </div>
+    </div>
+    <div class="panel scroll-x" style="margin-top:1.2rem">
+      <table>
+        <thead><tr><th>Comando</th><th>Cosa fa</th><th>Esempio</th></tr></thead>
+        <tbody>
+          <tr><td>G28</td><td>Porta tutti gli assi a casa (azzeramento)</td><td><code>G28</code></td></tr>
+          <tr><td>G0 / G1</td><td>Muove l'ugello. G1 con E depone plastica, G0 si sposta e basta</td><td><code>G1 X50 Y20 E2.1 F1800</code></td></tr>
+          <tr><td>M104 / M109</td><td>Imposta la temperatura dell'ugello (M109 aspetta di raggiungerla)</td><td><code>M109 S210</code></td></tr>
+          <tr><td>M140 / M190</td><td>Imposta la temperatura del piatto (M190 aspetta)</td><td><code>M190 S60</code></td></tr>
+          <tr><td>M106 / M107</td><td>Accende e spegne la ventola di raffreddamento</td><td><code>M106 S255</code></td></tr>
+          <tr><td>G92</td><td>Dichiara una posizione senza muoversi, di solito azzera l'estrusore</td><td><code>G92 E0</code></td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<!-- STRATO 05 -->
+<section class="layer" id="s5" data-name="Slicer Lab">
+  <div class="wrap">
+    <div class="sec-head">
+      <div class="tag"><em>Strato 05</em> Il software che fa le fette</div>
+      <h2>Slicer Lab: tempo, peso e qualità</h2>
+      <p>Lo slicer affetta il modello in strati e genera il G-code. Ogni impostazione sposta l'equilibrio tra tre cose: tempo, resistenza e finitura. Stampiamo virtualmente un cubo di 40 mm in PLA.</p>
+      <div class="mission" id="m-s5">Missione: prova tutti e quattro i cursori</div>
+    </div>
+    <div class="lab">
+      <div class="panel">
+        <div class="ctl"><label for="sLayer">Altezza strato <output id="oLayer"></output></label><input type="range" id="sLayer" min="0.1" max="0.4" step="0.05" value="0.2"></div>
+        <div class="ctl"><label for="sInfill">Riempimento (infill) <output id="oInfill"></output></label><input type="range" id="sInfill" min="0" max="100" step="5" value="20"></div>
+        <div class="ctl"><label for="sWalls">Pareti perimetrali <output id="oWalls"></output></label><input type="range" id="sWalls" min="1" max="5" step="1" value="2"></div>
+        <div class="ctl"><label for="sSpeed">Velocità di stampa <output id="oSpeed"></output></label><input type="range" id="sSpeed" min="20" max="150" step="5" value="50"></div>
+        <div class="grid g2" style="gap:.6rem;margin-top:1.2rem">
+          <div class="stat"><div class="kicker">Tempo stimato</div><div class="big" id="rTime">-</div></div>
+          <div class="stat"><div class="kicker">Strati</div><div class="big" id="rLayers">-</div></div>
+          <div class="stat"><div class="kicker">Peso PLA</div><div class="big" id="rMass">-</div></div>
+          <div class="stat"><div class="kicker">Filo usato</div><div class="big" id="rLen">-</div></div>
+        </div>
+        <div class="hint" id="rAdvice" style="margin-top:1rem" aria-live="polite"></div>
+        <p class="note" style="margin-top:.7rem">Stima semplificata: flusso limitato a 12 mm³/s, ugello da 0,4 mm, più il 30% per accelerazioni e spostamenti.</p>
+      </div>
+      <div class="panel">
+        <div class="kicker">Vista dall'alto · interno del cubo a metà altezza</div>
+        <canvas id="slTop" width="480" height="300" style="width:100%;height:auto;display:block;margin:.5rem 0 1rem;background:var(--soft);border-radius:10px" role="img" aria-label="Sezione del cubo con pareti e riempimento"></canvas>
+        <div class="kicker">Vista laterale · l'effetto scalino su una curva</div>
+        <canvas id="slSide" width="480" height="300" style="width:100%;height:auto;display:block;margin-top:.5rem;background:var(--soft);border-radius:10px" role="img" aria-label="Una sfera affettata in strati con effetto scalino"></canvas>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- STRATO 06 -->
+<section class="layer" id="s6" data-name="Tecnologie">
+  <div class="wrap">
+    <div class="sec-head">
+      <div class="tag"><em>Strato 06</em> Non esiste solo la FDM</div>
+      <h2>Quattro modi di costruire strato su strato</h2>
+      <p>Cambia il materiale di partenza e cambia tutto: precisione, resistenza, costo, finitura. Apri ogni scheda e confronta i punteggi (da 1 a 5, valutazioni indicative).</p>
+      <div class="mission" id="m-s6">Missione: visita tutte e quattro le tecnologie</div>
+    </div>
+    <div class="tabs" id="techTabs" role="tablist" aria-label="Tecnologie di stampa 3D"></div>
+    <div class="lab" id="techPanel" role="tabpanel" aria-live="polite"></div>
+  </div>
+</section>
+
+<!-- STRATO 07 -->
+<section class="layer" id="s7" data-name="Materiali">
+  <div class="wrap">
+    <div class="sec-head">
+      <div class="tag"><em>Strato 07</em> Scegliere il materiale</div>
+      <h2>Filamenti: ogni plastica ha un carattere</h2>
+      <p>Il PLA, il più usato, nasce da amido di mais o canna da zucchero. Ma un oggetto lasciato in un'auto d'estate racconta un'altra storia. Metti alla prova i materiali con il test del caldo.</p>
+      <div class="mission" id="m-s7">Missione: porta il termometro oltre i 75 °C</div>
+    </div>
+    <div class="panel" style="margin-bottom:1.2rem">
+      <div class="ctl" style="margin:0">
+        <label for="tempSlider">Temperatura dell'ambiente <output id="tempOut">25 °C</output></label>
+        <input type="range" id="tempSlider" min="20" max="120" step="1" value="25">
+      </div>
+      <p class="note" id="tempScene" style="margin:.4rem 0 0" aria-live="polite"></p>
+    </div>
+    <div class="grid g3" id="matGrid"></div>
+    <p class="note" style="margin-top:1rem">Temperature indicative: variano con marca, additivi e colore. Controlla sempre la scheda tecnica della bobina.</p>
+  </div>
+</section>
+
+<!-- STRATO 08 -->
+<section class="layer" id="s8" data-name="Applicazioni">
+  <div class="wrap">
+    <div class="sec-head">
+      <div class="tag"><em>Strato 08</em> Fuori dal laboratorio</div>
+      <h2>Dove si stampa davvero, oggi</h2>
+      <p>Dalle turbine di un aereo a una casa di argilla, passando per il cibo e le campagne. Filtra per settore e leggi i casi.</p>
+      <div class="mission" id="m-s8">Missione: apri almeno quattro settori diversi</div>
+    </div>
+    <div class="chips" id="appChips" role="group" aria-label="Filtra per settore" style="margin-bottom:1.2rem"></div>
+    <div class="grid g3" id="appGrid"></div>
+  </div>
+</section>
+
+<!-- STRATO 09 -->
+<section class="layer" id="s9" data-name="Pronto soccorso">
+  <div class="wrap">
+    <div class="sec-head">
+      <div class="tag"><em>Strato 09</em> Quando va storto</div>
+      <h2>Pronto soccorso stampa</h2>
+      <p>Una stampa fallita è il modo più veloce per imparare. Ti descrivo il sintomo, tu scegli la causa più probabile. Sei casi, nessuna penalità.</p>
+      <div class="mission" id="m-s9">Missione: diagnostica correttamente almeno 4 casi su 6</div>
+    </div>
+    <div class="panel" id="bugBox" aria-live="polite"></div>
+  </div>
+</section>
+
+<!-- STRATO 10 -->
+<section class="layer" id="s10" data-name="Quiz finale">
+  <div class="wrap">
+    <div class="sec-head">
+      <div class="tag"><em>Strato 10</em> Verifica</div>
+      <h2>Esame da operatore 3D</h2>
+      <p>Otto domande su tutto quello che hai visto. Alla fine ricevi il tuo grado.</p>
+      <div class="mission" id="m-s10">Missione: completa il quiz</div>
+    </div>
+    <div class="panel" id="quizBox" aria-live="polite"></div>
+  </div>
+</section>
+
+<!-- STRATO 11 -->
+<section class="layer" id="s11" data-name="Responsabilità">
+  <div class="wrap">
+    <div class="sec-head">
+      <div class="tag"><em>Strato 11</em> Il lato serio</div>
+      <h2>Sicurezza, ambiente, responsabilità</h2>
+      <p>Una tecnologia che permette a chiunque di fabbricare ha effetti collaterali. Qui non c'è una risposta giusta da indovinare: leggi i quattro temi, vota la tua posizione e confrontati in classe.</p>
+    </div>
+    <div class="grid g2" id="ethGrid"></div>
+
+    <div class="panel" style="margin-top:1.4rem">
+      <div class="kicker">Glossario tascabile</div>
+      <div class="ctl" style="margin:.6rem 0 1rem">
+        <label for="glossQ">Cerca un termine</label>
+        <input id="glossQ" type="search" placeholder="es. slicer, warping, infill" autocomplete="off" style="font:500 1rem var(--f-body);padding:.7rem .9rem;border-radius:10px;border:1px solid var(--line);background:var(--soft);color:var(--ink);width:100%">
+      </div>
+      <div class="grid g2" id="glossList"></div>
+    </div>
+  </div>
+</section>
+</main>
+
+<footer>
+  <div class="wrap">
+    <p><strong>Layer Lab</strong> · percorso didattico sulla manifattura additiva per la classe 4ª. Valori numerici semplificati a scopo di insegnamento. Per le impostazioni reali consulta il manuale della tua macchina e le schede tecniche dei materiali.</p>
+    <p class="mono">Fine della stampa. Rimuovi il pezzo con cautela: il piatto può essere ancora a 60 °C.</p>
+  </div>
+</footer>
+
+<script>
+(function(){
+'use strict';
+const $=(s,r)=>(r||document).querySelector(s), $$=(s,r)=>Array.from((r||document).querySelectorAll(s));
+const root=document.documentElement;
+const cv=n=>getComputedStyle(root).getPropertyValue(n).trim();
+const reduce=matchMedia('(prefers-reduced-motion: reduce)').matches;
+const redraws=[]; const onTheme=f=>redraws.push(f);
+const themeChanged=()=>redraws.forEach(f=>{try{f()}catch(e){}});
+new MutationObserver(themeChanged).observe(root,{attributes:true,attributeFilter:['data-theme']});
+try{matchMedia('(prefers-color-scheme: dark)').addEventListener('change',themeChanged)}catch(e){}
+$('#themeBtn').addEventListener('click',()=>{
+  const dark=root.dataset.theme?root.dataset.theme==='dark':matchMedia('(prefers-color-scheme: dark)').matches;
+  root.dataset.theme=dark?'light':'dark';
+});
+const rnd=a=>a.map(v=>[Math.random(),v]).sort((x,y)=>x[0]-y[0]).map(x=>x[1]);
+const pad=n=>String(n).padStart(2,'0');
+
+/* ---------- missions ---------- */
+const doneSet=new Set();
+function mission(id){
+  if(doneSet.has(id))return; doneSet.add(id);
+  const el=$('#m-'+id);
+  if(el){el.classList.add('done');el.textContent=el.textContent.replace('Missione:','Missione completata:');}
+  $('#xp').textContent='Missioni '+doneSet.size+'/10';
+}
+
+/* ---------- print progress bar ---------- */
+const layers=$$('.layer'); let ticking=false;
+function prog(){
+  ticking=false;
+  const max=document.documentElement.scrollHeight-innerHeight;
+  const p=max>0?Math.min(1,Math.max(0,scrollY/max)):0;
+  $('#bar').style.width=(p*100).toFixed(1)+'%';
+  $('#pct').textContent=Math.round(p*100)+'%';
+  let cur=0; layers.forEach((s,i)=>{if(s.getBoundingClientRect().top<innerHeight*.45)cur=i+1;});
+  $('#layerNow').textContent='Strato '+pad(cur)+' / '+pad(layers.length);
+}
+addEventListener('scroll',()=>{if(!ticking){ticking=true;requestAnimationFrame(prog)}},{passive:true});
+addEventListener('resize',prog); prog();
+
+/* ---------- hero: a vase prints itself ---------- */
+(function(){
+  const c=$('#heroCanvas'), g=c.getContext('2d'), W=c.width, H=c.height;
+  const N=64, LH=6.1, BASE=H-72, CX=W/2;
+  const rad=y=>46+56*Math.pow(Math.sin(Math.PI*y*.92),1.2)-18*y+14*Math.max(0,(y-.88)/.12);
+  let hl=reduce?N:0, acc=0, last=0, hold=0, t=0;
+  function draw(){
+    g.clearRect(0,0,W,H);
+    const ink=cv('--ink'), acc1=cv('--accent'), acc2=cv('--accent-text'), cool=cv('--cool'), mut=cv('--muted');
+    g.fillStyle=ink; g.fillRect(50,BASE+2,W-100,16);
+    g.fillStyle=mut; g.fillRect(50,BASE+18,W-100,5);
+    const ts=Math.floor(hl);
+    for(let i=0;i<ts;i++){
+      const r=rad(i/N), y=BASE-(i+1)*LH;
+      g.fillStyle=i%2?acc1:acc2; g.globalAlpha=i%2?1:.92;
+      g.fillRect(CX-r,y,r*2,LH+.5);
+    }
+    g.globalAlpha=1;
+    const ty=BASE-ts*LH, r=ts>0?rad(ts/N):40;
+    const nx=reduce||hl>=N?CX+r*.3:CX+Math.sin(t*10)*r*.92;
+    g.strokeStyle=ink; g.lineWidth=7; g.beginPath(); g.moveTo(26,ty-74); g.lineTo(W-26,ty-74); g.stroke();
+    g.fillStyle=cool; g.fillRect(nx-26,ty-96,52,44);
+    g.fillStyle=ink; g.fillRect(nx-13,ty-52,26,28);
+    g.beginPath(); g.moveTo(nx-12,ty-24); g.lineTo(nx+12,ty-24); g.lineTo(nx,ty-2); g.closePath(); g.fill();
+    if(hl<N){g.fillStyle=acc1; g.beginPath(); g.arc(nx,ty,4,0,7); g.fill();}
+    $('#heroLayer').textContent='Strato '+ts+' / '+N+' · 0,2 mm';
+  }
+  function loop(now){
+    const dt=Math.min(.05,(now-last)/1000||0); last=now; t+=dt;
+    if(hl<N){hl=Math.min(N,hl+dt*15);} else if(!reduce){hold+=dt; if(hold>3.2){hl=0;hold=0;}}
+    draw(); requestAnimationFrame(loop);
+  }
+  $('#heroReplay').addEventListener('click',()=>{hl=0;hold=0;});
+  onTheme(draw); draw();
+  if(!reduce) requestAnimationFrame(loop);
+})();
+
+/* ---------- strato 01: complexity + time machine ---------- */
+(function(){
+  const cp=$('#cplx'); let moved=false, travelled=false;
+  function upd(){
+    const c=+cp.value; $('#cplxOut').textContent=c+' / 10';
+    const waste=.30+.06*c, block=100/(1-waste), add=100*(1.03+.01*c);
+    $('#bSub').style.width=(block/10)+'%'; $('#bAdd').style.width=(add/10)+'%';
+    $('#vSub').textContent=Math.round(block)+' g'; $('#vAdd').textContent=Math.round(add)+' g';
+    const w=Math.round(waste*100);
+    let t;
+    if(c<=3) t='Forma semplice. La fresa parte da '+Math.round(block)+' g e ne butta il '+w+'%. Pochi problemi: per un pezzo così, la lavorazione tradizionale è spesso la scelta giusta.';
+    else if(c<=7) t='Cavità, raccordi e curve. La fresa scarta il '+w+'% del blocco e servono più riposizionamenti del pezzo. La stampa 3D usa quasi solo il materiale che resta nel pezzo, più qualche supporto.';
+    else t='Canali interni e reticoli. Alcune geometrie non sono raggiungibili da nessun utensile, e dove lo sono si scarta il '+w+'%. Qui la manifattura additiva cambia le regole: la complessità costa pochissimo.';
+    $('#cplxText').textContent=t;
+    if(moved) { if(travelled) mission('s1'); } moved=true;
+  }
+  cp.addEventListener('input',upd); upd(); moved=false;
+  const EV=[
+    ['1981','Il primo metodo a strati','Hideo Kodama, in Giappone, descrive un sistema per costruire modelli in plastica indurendo con la luce una resina fotosensibile, uno strato alla volta.'],
+    ['1984','Nasce la stereolitografia','Chuck Hull deposita il brevetto della SLA (concesso nel 1986) e fonda 3D Systems. È la prima stampante 3D commerciale.'],
+    ['1986','Polveri e laser','Carl Deckard, all\'Università del Texas, brevetta la sinterizzazione laser selettiva (SLS): un laser fonde una polvere punto per punto.'],
+    ['1988','La plastica fusa','Scott Crump inventa la FDM, il principio delle stampanti da scuola, e nel 1989 fonda Stratasys. Il brevetto sarà concesso nel 1992.'],
+    ['2005','Una stampante che si replica','Adrian Bowyer, all\'Università di Bath, avvia il progetto RepRap: una stampante open source capace di stampare molti dei propri pezzi.'],
+    ['2009','Scade il brevetto, esplode il mercato','Dopo la scadenza dei brevetti FDM arrivano i primi kit economici. La stampa 3D esce dalle fabbriche e entra nei garage e nelle scuole.'],
+    ['2014','Stampa in orbita','Sulla Stazione Spaziale Internazionale una stampante di Made In Space realizza il primo oggetto stampato fuori dalla Terra.'],
+    ['Oggi','Metalli, case, tessuti vivi','Si stampano turbine in metallo, edifici in terra e calcestruzzo, protesi su misura. In laboratorio si studia anche la bio-stampa di tessuti.']
+  ];
+  const yr=$('#yr');
+  function ev(){const e=EV[+yr.value]; $('#yrYear').textContent=e[0]; $('#yrTitle').textContent=e[1]; $('#yrText').textContent=e[2];
+    if(+yr.value===EV.length-1) {travelled=true; if(moved||+cp.value!==5) mission('s1');} }
+  yr.addEventListener('input',ev); ev();
+  cp.addEventListener('input',()=>{ if(travelled) mission('s1'); });
+})();
+
+/* ---------- strato 02: pipeline + order game ---------- */
+(function(){
+  const S=[
+    ['Idea','Parte sempre da un problema reale: un supporto che non esiste, un ingranaggio rotto. Fai uno schizzo e prendi le misure con il calibro.','Schizzo, quote','Misurare a occhio. Un errore di 1 mm decide se un incastro funziona.'],
+    ['CAD','Disegni il modello 3D con un programma di progettazione, per esempio Tinkercad, FreeCAD, Fusion o Onshape. Nel CAD parametrico le misure sono variabili che puoi cambiare dopo.','.step · .f3d · .FCStd','Dimenticare le tolleranze: due pezzi che devono incastrarsi hanno bisogno di 0,2 mm di gioco.'],
+    ['Esporta','Il modello esce come mesh, una rete di triangoli. STL è il formato storico, 3MF è più moderno e porta con sé anche unità e impostazioni.','.stl · .3mf','Un STL con buchi nella superficie: lo slicer non capisce cosa è dentro e cosa fuori.'],
+    ['Slicer','Il software affetta il modello in strati, decide pareti, riempimento, supporti, velocità e temperature. Cura, PrusaSlicer e Bambu Studio sono i più usati.','Cura · PrusaSlicer','Orientare male il pezzo: la resistenza è minore tra uno strato e l\'altro.'],
+    ['G-code','Il risultato dello slicer è un file di testo con migliaia di righe di comandi. Lo porti alla stampante con scheda SD, USB o rete.','.gcode · .bgcode','Usare il G-code di un\'altra macchina: i comandi di avvio possono non combaciare.'],
+    ['Stampa','La macchina scalda, si azzera e depone il primo strato. È il momento in cui conviene guardare: i primi minuti decidono tutto.','Ugello, piatto, ventola','Allontanarsi prima di aver visto il primo strato aderire.'],
+    ['Finitura','Si tolgono i supporti, si carteggia, si controlla con il calibro. Alcuni materiali si possono lisciare con vapori o resine, con le dovute precauzioni.','Calibro, lime, carta vetrata','Strappare i supporti con foga: si porta via anche un pezzo di superficie.']
+  ];
+  const box=$('#pipeSteps'), det=$('#pipeDetail');
+  S.forEach((s,i)=>{const b=document.createElement('button'); b.type='button'; b.className='step'; b.setAttribute('role','tab'); b.innerHTML='<b>'+(i+1)+'</b>'+s[0]; b.addEventListener('click',()=>show(i)); box.appendChild(b);});
+  function show(i){
+    $$('#pipeSteps .step').forEach((b,j)=>b.setAttribute('aria-selected',j===i));
+    const s=S[i];
+    det.innerHTML='<div class="kicker">Passaggio '+(i+1)+' di 7</div><h3 style="margin:.4rem 0 .6rem">'+s[0]+'</h3><p>'+s[1]+'</p><p><span class="pill">'+s[2]+'</span></p><div class="hint"><b>Errore tipico.</b> '+s[3]+'</div>';
+  }
+  show(0);
+  const pool=$('#sortPool'), out=$('#sortOut'); let next, errs, order;
+  function reset(){
+    next=0; errs=0; pool.innerHTML=''; order=rnd(S.map((s,i)=>i));
+    order.forEach(i=>{const b=document.createElement('button'); b.type='button'; b.className='chip'; b.textContent=S[i][0]; b.dataset.i=i;
+      b.addEventListener('click',()=>pick(b,i)); pool.appendChild(b);});
+    out.textContent='Qual è il primo passaggio?';
+  }
+  function pick(b,i){
+    if(i===next){
+      b.disabled=true; b.setAttribute('aria-pressed','true'); b.textContent=(next+1)+'. '+S[i][0]; next++;
+      if(next===S.length){
+        if(errs===0){out.innerHTML='<b>Perfetto.</b> Sette su sette, nessun errore. Missione compiuta.'; mission('s2');}
+        else{out.innerHTML='Completato con '+errs+(errs===1?' errore':' errori')+'. Per la missione serve un giro pulito. <button class="btn" id="sortAgain" type="button" style="margin-left:.5rem;min-height:36px;padding:.3rem .8rem">Riprova</button>'; $('#sortAgain').addEventListener('click',reset);}
+      } else out.textContent='Giusto. E adesso, il passaggio '+(next+1)+'?';
+    } else {
+      errs++; b.classList.remove('shake'); void b.offsetWidth; b.classList.add('shake');
+      out.textContent='No, non ancora. Ti manca qualcosa prima. Errori: '+errs;
+    }
+  }
+  reset();
+})();
+
+/* ---------- strato 03: anatomy ---------- */
+(function(){
+  const P={
+    spool:['1 · Bobina','Il filamento è un filo di plastica da 1,75 mm di diametro (esiste anche da 2,85) avvolto su una bobina. Deve srotolarsi senza impuntarsi. Nylon e PETG assorbono umidità dall\'aria: per questo si conservano in scatole con sali essiccanti.'],
+    extruder:['2 · Estrusore','Una ruota dentata, mossa da un motore, afferra il filo e lo spinge verso il basso. Può stare sul carrello (direct drive) oppure lontano con un tubo di PTFE (Bowden). Se senti un "tic tic" ritmico, il filo sta slittando.'],
+    hotend:['3 · Hotend','È la parte calda: un blocco riscaldante con un termistore che misura la temperatura. Il segmento chiamato heat break impedisce al calore di risalire e di sciogliere il filo troppo presto, altrimenti si intasa. Lavora tra 190 e 260 °C, a seconda del materiale.'],
+    nozzle:['4 · Ugello','Una punta di ottone con un foro, di solito da 0,4 mm, da cui esce la plastica fusa. Foro più piccolo vuol dire più dettaglio e più tempo. Filamenti con fibre di carbonio consumano l\'ottone: servono ugelli in acciaio temprato.'],
+    xaxis:['5 · Assi di movimento','Una stampante cartesiana si muove su tre assi: X (destra-sinistra), Y (avanti-indietro), Z (su-giù). Cinghie dentate per X e Y, viti trapezoidali per Z. Il G-code ragiona proprio in queste tre coordinate.'],
+    bed:['6 · Piatto riscaldato','La superficie su cui nasce l\'oggetto. Per il PLA si tiene attorno ai 60 °C: tiene il primo strato appiccicato e riduce il warping. Se il piatto non è livellato, il primo strato viene schiacciato da una parte e sollevato dall\'altra.'],
+    motor:['7 · Motori passo-passo','Ruotano a scatti di angolo preciso: un motore comune fa 200 passi per giro (1,8° ciascuno). Contando i passi, la scheda sa dove si trova ogni asse senza bisogno di sensori di posizione.'],
+    board:['8 · Scheda di controllo','Il cervello. Legge il G-code riga per riga, comanda i motori, regola i riscaldatori con la lettura del termistore e controlla i finecorsa. Ha funzioni di sicurezza che spengono tutto se la temperatura non sale o sale troppo (thermal runaway).']
+  };
+  const seen=new Set(), info=$('#partInfo');
+  function sel(el){
+    const k=el.dataset.part, p=P[k]; if(!p)return;
+    $$('#anatomy .part').forEach(x=>x.classList.remove('on')); el.classList.add('on'); el.classList.add('seen'); seen.add(k);
+    info.innerHTML='<div class="kicker">Parte scoperta</div><h3 style="margin:.5rem 0">'+p[0]+'</h3><p>'+p[1]+'</p>';
+    $('#seenCount').textContent=seen.size; if(seen.size===8) mission('s3');
+  }
+  $$('#anatomy .part').forEach(el=>{
+    el.addEventListener('click',()=>sel(el));
+    el.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();sel(el);}});
+  });
+})();
+
+/* ---------- strato 04: g-code playground ---------- */
+(function(){
+  const c=$('#gcCanvas'), g=c.getContext('2d'), W=c.width, SZ=100;
+  const sx=v=>30+v/SZ*(W-60), sy=v=>W-30-v/SZ*(W-60);
+  const spiral=()=>{let s='G28\nG0 X50 Y50\n',e=0;for(let i=1;i<=80;i++){const a=i*.35,r=1.2+i*.52;e+=.5;s+='G1 X'+(50+r*Math.cos(a)).toFixed(1)+' Y'+(50+r*Math.sin(a)).toFixed(1)+' E'+e.toFixed(1)+'\n';}return s;};
+  const PRE={
+    'Quadrato':'G28\nM104 S210\nM140 S60\nG0 X20 Y20\nG1 X80 Y20 E2.4 F1800\nG1 X80 Y80 E4.8\nG1 X20 Y80 E7.2\nG1 X20 Y20 E9.6\n',
+    'Casetta':'G28\nG0 X25 Y20\nG1 X75 Y20 E2\nG1 X75 Y60 E3.6\nG1 X50 Y85 E5.4\nG1 X25 Y60 E7.2\nG1 X25 Y20 E8.8\nG0 X45 Y20\nG1 X45 Y40 E9.6\nG1 X58 Y40 E10.1\nG1 X58 Y20 E10.9\n',
+    'Spirale':spiral(),
+    'Stella':'G28\nG0 X50 Y92\nG1 X32 Y22 E3\nG1 X90 Y65 E6.4\nG1 X10 Y65 E10\nG1 X68 Y22 E13.5\nG1 X50 Y92 E16.8\n',
+    'Tuo disegno':'; scrivi qui le tue righe\nG28\nG0 X10 Y10\nG1 X90 Y10 E3\nG1 X10 Y90 E7.6\nG1 X90 Y90 E11\n'
+  };
+  const ta=$('#gcode'), ps=$('#gcPresets'); let runs=0, raf=0;
+  Object.keys(PRE).forEach(k=>{const b=document.createElement('button'); b.type='button'; b.className='chip'; b.textContent=k;
+    b.addEventListener('click',()=>{ta.value=PRE[k]; $$('#gcPresets .chip').forEach(x=>x.setAttribute('aria-pressed',x===b)); render(1,false);}); ps.appendChild(b);});
+  function parse(){
+    const segs=[]; let x=0,y=0,e=0,msg=[],lines=0;
+    ta.value.split('\n').forEach((raw,ln)=>{
+      const l=raw.split(';')[0].trim().toUpperCase(); if(!l)return; lines++;
+      const w=l.split(/\s+/), cmd=w[0], a={};
+      w.slice(1).forEach(t=>{const k=t[0],v=parseFloat(t.slice(1)); if(!isNaN(v))a[k]=v;});
+      if(cmd==='G28'){x=0;y=0;e=0;}
+      else if(cmd==='G92'){if(a.E!==undefined)e=a.E;}
+      else if(cmd==='G0'||cmd==='G1'){
+        const nx=a.X!==undefined?a.X:x, ny=a.Y!==undefined?a.Y:y, ne=a.E!==undefined?a.E:e;
+        if(nx<0||nx>SZ||ny<0||ny>SZ) msg.push('Riga '+(ln+1)+': fuori dal piatto da 100 × 100 mm.');
+        segs.push({x0:x,y0:y,x1:nx,y1:ny,ext:cmd==='G1'&&ne>e}); x=nx;y=ny;e=ne;
+      } else if(!/^(M104|M109|M140|M190|M106|M107|M84|G90|G91|G21|M82)$/.test(cmd)) msg.push('Riga '+(ln+1)+': comando "'+cmd+'" sconosciuto, la stampante lo ignorerebbe.');
+    });
+    return {segs,msg,lines,e};
+  }
+  function grid(){
+    g.clearRect(0,0,W,W); g.lineWidth=1; g.strokeStyle=cv('--line'); g.fillStyle=cv('--muted'); g.font='11px '+cv('--f-mono');
+    for(let v=0;v<=SZ;v+=10){g.beginPath();g.moveTo(sx(v),sy(0));g.lineTo(sx(v),sy(SZ));g.moveTo(sx(0),sy(v));g.lineTo(sx(SZ),sy(v));g.stroke();
+      if(v%20===0){g.fillText(v,sx(v)-6,W-12);g.fillText(v,6,sy(v)+4);}}
+  }
+  function render(frac,anim){
+    const P=parse(); grid();
+    const tot=P.segs.reduce((s,q)=>s+Math.hypot(q.x1-q.x0,q.y1-q.y0),0); let run=tot*frac, drawn=0, hx=0, hy=0;
+    P.segs.forEach(q=>{
+      const L=Math.hypot(q.x1-q.x0,q.y1-q.y0); if(drawn>=run)return;
+      const f=L>0?Math.min(1,(run-drawn)/L):1; drawn+=L;
+      const ex=q.x0+(q.x1-q.x0)*f, ey=q.y0+(q.y1-q.y0)*f; hx=ex; hy=ey;
+      g.beginPath(); g.moveTo(sx(q.x0),sy(q.y0)); g.lineTo(sx(ex),sy(ey));
+      if(q.ext){g.setLineDash([]);g.strokeStyle=cv('--accent');g.lineWidth=5;g.lineCap='round';}
+      else{g.setLineDash([6,6]);g.strokeStyle=cv('--cool');g.lineWidth=2;}
+      g.stroke(); g.setLineDash([]);
+    });
+    if(frac<1 || anim){g.fillStyle=cv('--ink');g.beginPath();g.arc(sx(hx),sy(hy),7,0,7);g.fill();}
+    $('#gcLines').textContent=P.lines; $('#gcLen').textContent=Math.round(tot)+' mm'; $('#gcE').textContent=P.e.toFixed(1)+' mm';
+    $('#gcMsg').textContent=P.msg.length?P.msg[0]:(P.segs.length?'Percorso valido. Il piatto è 100 × 100 mm, origine in basso a sinistra.':'Scrivi almeno un comando G1.');
+  }
+  function run(){
+    cancelAnimationFrame(raf); runs++; if(runs>=3) mission('s4');
+    if(reduce){render(1,false);return;}
+    const t0=performance.now(), D=3200;
+    (function step(now){const f=Math.min(1,(now-t0)/D); render(f,true); if(f<1) raf=requestAnimationFrame(step);})(t0);
+  }
+  $('#gcRun').addEventListener('click',run);
+  $('#gcInstant').addEventListener('click',()=>{cancelAnimationFrame(raf);render(1,false);});
+  ta.addEventListener('input',()=>{cancelAnimationFrame(raf);render(1,false);});
+  ta.value=PRE['Quadrato']; $$('#gcPresets .chip')[0].setAttribute('aria-pressed','true');
+  onTheme(()=>render(1,false)); render(1,false);
+})();
+
+/* ---------- strato 05: slicer lab ---------- */
+(function(){
+  const ids=['sLayer','sInfill','sWalls','sSpeed'], touched=new Set(), L=40, LW=.4;
+  const top=$('#slTop'), side=$('#slSide'), gt=top.getContext('2d'), gs=side.getContext('2d');
+  const fmtT=min=>{const h=Math.floor(min/60), m=Math.round(min%60); return h>0?h+' h '+pad(m)+' min':m+' min';};
+  function calc(){
+    const lh=+$('#sLayer').value, inf=+$('#sInfill').value/100, w=+$('#sWalls').value, sp=+$('#sSpeed').value;
+    $('#oLayer').textContent=lh.toFixed(2)+' mm'; $('#oInfill').textContent=Math.round(inf*100)+' %';
+    $('#oWalls').textContent=w+(w===1?' parete':' pareti'); $('#oSpeed').textContent=sp+' mm/s';
+    const t=w*LW, shell=6*L*L*t, innerS=Math.max(0,L-2*t), infill=Math.pow(innerS,3)*inf, vol=shell+infill;
+    const flow=Math.min(lh*LW*sp,12), min=vol/flow*1.3/60, mass=vol/1000*1.24, len=vol/(Math.PI*.875*.875)/1000;
+    $('#rTime').textContent=fmtT(min); $('#rLayers').textContent=Math.round(L/lh); $('#rMass').textContent=mass.toFixed(1)+' g'; $('#rLen').textContent=len.toFixed(1)+' m';
+    let a;
+    if(lh>=.3&&sp>=100) a='Strati spessi e alta velocità: stampa rapida, ma le linee degli strati si vedono molto e la qualità cala. Va bene per prototipi veloci.';
+    else if(lh<=.12) a='Strati sottilissimi: superficie liscia e curve fedeli, ma il tempo si moltiplica. Chiediti se il dettaglio serve davvero.';
+    else if(inf<.1) a='Quasi vuoto dentro: leggero e veloce, ma debole sotto carico. Perfetto per un modello da esposizione, non per un pezzo meccanico.';
+    else if(inf>=.7) a='Riempimento molto alto: il pezzo pesa e costa. Spesso aumentare le pareti dà più resistenza dello stesso sforzo in infill.';
+    else if(flow>=12&&sp>60) a='Hai raggiunto il limite di flusso dell\'hotend: andare ancora più veloce non accorcia il tempo, la plastica non si scioglie abbastanza in fretta.';
+    else a='Impostazioni equilibrate: il classico compromesso 0,2 mm con 15-20% di riempimento, adatto alla maggior parte dei pezzi.';
+    $('#rAdvice').innerHTML='<b>Lettura.</b> '+a;
+    drawTop(inf,w); drawSide(lh);
+  }
+  function drawTop(inf,w){
+    const W=top.width,H=top.height; gt.clearRect(0,0,W,H);
+    const s=Math.min(W,H)-30, x0=(W-s)/2, y0=(H-s)/2, k=s/L, t=w*LW*k;
+    gt.fillStyle=cv('--accent'); gt.fillRect(x0,y0,s,s);
+    gt.fillStyle=cv('--surface'); gt.fillRect(x0+t,y0+t,s-2*t,s-2*t);
+    if(inf>0){const sp=Math.max(4,(2*.4*k)/inf); gt.strokeStyle=cv('--cool'); gt.lineWidth=Math.max(1.5,.4*k*.8);
+      gt.save(); gt.beginPath(); gt.rect(x0+t,y0+t,s-2*t,s-2*t); gt.clip();
+      gt.beginPath(); for(let p=0;p<=s;p+=sp){gt.moveTo(x0+p,y0);gt.lineTo(x0+p,y0+s);gt.moveTo(x0,y0+p);gt.lineTo(x0+s,y0+p);} gt.stroke(); gt.restore();}
+    gt.fillStyle=cv('--muted'); gt.font='11px '+cv('--f-mono'); gt.fillText('40 mm',x0+s/2-18,y0+s+13);
+  }
+  function drawSide(lh){
+    const W=side.width,H=side.height; gs.clearRect(0,0,W,H);
+    const R=125, cx=W/2, cy=H-18, n=Math.max(1,Math.round(L/lh)), h=R*2/n;
+    const rr=y=>Math.sqrt(Math.max(0,R*R-(y-R)*(y-R)));
+    gs.fillStyle=cv('--accent');
+    for(let i=0;i<n;i++){const yy=(i+.5)*h, w=rr(yy); gs.fillRect(cx-w,cy-(i+1)*h,w*2,h+.4);}
+    gs.strokeStyle=cv('--ink'); gs.lineWidth=1.5; gs.setLineDash([5,4]); gs.beginPath(); gs.arc(cx,cy-R,R,0,Math.PI*2); gs.stroke(); gs.setLineDash([]);
+    gs.fillStyle=cv('--muted'); gs.font='11px '+cv('--f-mono'); gs.fillText(n+' strati · tratteggio = forma ideale',8,14);
+  }
+  ids.forEach(id=>$('#'+id).addEventListener('input',()=>{touched.add(id); if(touched.size===4)mission('s5'); calc();}));
+  onTheme(calc); calc();
+})();
+
+/* ---------- strato 06: technologies ---------- */
+(function(){
+  const T=[
+    {n:'FDM',f:'Deposizione di filamento fuso',how:'Un filo di termoplastica viene fuso nell\'hotend e depositato linea per linea. Il pezzo cresce dal basso verso l\'alto.',use:'Prototipi, attrezzature di officina, ricambi, didattica.',mat:'PLA, PETG, ABS, TPU, nylon',r:[['Precisione',3],['Resistenza',3],['Finitura',2],['Economia',5],['Facilità',4]],tip:'La più economica, ma si vedono le righe degli strati.'},
+    {n:'SLA / MSLA',f:'Stereolitografia con resina',how:'Una resina liquida fotosensibile viene indurita da luce UV, a strati. Il pezzo esce appeso al piatto, immerso nella vaschetta.',use:'Gioielleria, odontoiatria, miniature, modelli molto dettagliati.',mat:'Resine acriliche, epossidiche, flessibili',r:[['Precisione',5],['Resistenza',2],['Finitura',5],['Economia',3],['Facilità',2]],tip:'Dettagli finissimi, ma serve lavare e post-indurire. La resina non va toccata a mani nude.'},
+    {n:'SLS',f:'Sinterizzazione laser selettiva',how:'Un laser fonde punto per punto una polvere di nylon. La polvere non fusa regge il pezzo, quindi non servono supporti.',use:'Parti funzionali complesse, piccole serie, componenti industriali.',mat:'Poliammidi (nylon), TPU in polvere',r:[['Precisione',4],['Resistenza',4],['Finitura',3],['Economia',2],['Facilità',2]],tip:'Pezzi robusti con geometrie impossibili, ma la macchina costa decine di migliaia di euro.'},
+    {n:'Metallo',f:'Fusione laser su letto di polvere',how:'Un laser molto potente fonde strati di polvere metallica in atmosfera inerte. Dopo la stampa i pezzi si staccano dal piatto e si trattano termicamente.',use:'Turbine, impianti medicali, scambiatori di calore, stampi.',mat:'Titanio, acciaio inox, alluminio, leghe di nichel',r:[['Precisione',4],['Resistenza',5],['Finitura',2],['Economia',1],['Facilità',1]],tip:'Applicazioni di punta nell\'aerospazio. Servono operatori specializzati e norme di sicurezza severe.'}
+  ];
+  const tabs=$('#techTabs'), pan=$('#techPanel'), seen=new Set();
+  T.forEach((t,i)=>{const b=document.createElement('button'); b.type='button'; b.className='chip'; b.setAttribute('role','tab'); b.textContent=t.n; b.addEventListener('click',()=>show(i)); tabs.appendChild(b);});
+  function show(i){
+    const t=T[i]; $$('#techTabs .chip').forEach((b,j)=>b.setAttribute('aria-selected',j===i));
+    pan.innerHTML='<div class="panel"><div class="kicker">'+t.f+'</div><h3 style="margin:.5rem 0 .7rem">'+t.n+'</h3><p>'+t.how+'</p><p><b>Dove si usa.</b> '+t.use+'</p><p class="note" style="margin:0"><b>Materiali:</b> '+t.mat+'</p></div>'+
+      '<div class="panel"><div class="kicker">Punteggi indicativi</div>'+t.r.map(r=>'<div class="bar-row"><span>'+r[0]+'</span><div class="bar-bg"><b class="'+(i%2?'':'o')+'" style="width:0" data-w="'+r[1]*20+'"></b></div><span>'+r[1]+'/5</span></div>').join('')+'<div class="hint" style="margin-top:1rem">'+t.tip+'</div></div>';
+    requestAnimationFrame(()=>requestAnimationFrame(()=>$$('#techPanel .bar-bg b').forEach(b=>b.style.width=b.dataset.w+'%')));
+    seen.add(i); if(seen.size===T.length) mission('s6');
+  }
+  show(0);
+})();
+
+/* ---------- strato 07: materials ---------- */
+(function(){
+  const M=[
+    {n:'PLA',src:'Amido di mais o canna da zucchero',noz:'190-220 °C',bed:'20-60 °C',max:55,f:'Facile, profumo dolce, poco ritiro. Fragile e sensibile al caldo.',use:'Modelli, prototipi, didattica'},
+    {n:'PETG',src:'Poliestere derivato dal petrolio',noz:'230-250 °C',bed:'70-85 °C',max:70,f:'Più resistente e flessibile del PLA, ottimo per contatto con acqua. Tende a fare fili.',use:'Contenitori, pezzi funzionali'},
+    {n:'ABS',src:'Derivato dal petrolio',noz:'230-260 °C',bed:'95-110 °C',max:90,f:'Robusto e tenace, si leviga con vapori di acetone. Fa warping e rilascia fumi: serve ventilazione.',use:'Parti meccaniche, custodie'},
+    {n:'TPU',src:'Elastomero termoplastico',noz:'220-240 °C',bed:'30-60 °C',max:75,f:'Gomma stampabile: si piega e rimbalza. Va stampato lento.',use:'Guarnizioni, suole, paraurti'},
+    {n:'Nylon (PA)',src:'Poliammide',noz:'240-270 °C',bed:'70-90 °C',max:100,f:'Resistente all\'usura e agli urti, ottimo per ingranaggi. Assorbe umidità, va essiccato.',use:'Ingranaggi, cerniere'},
+    {n:'PLA + legno',src:'PLA con fibra di legno',noz:'190-220 °C',bed:'30-60 °C',max:55,f:'Aspetto e profumo di legno, si carteggia e si tinge. Richiede ugello più largo per non intasarsi.',use:'Oggetti decorativi'}
+  ];
+  const grid=$('#matGrid');
+  M.forEach(m=>{const d=document.createElement('div'); d.className='card'; d.innerHTML='<span class="pill" id="st-'+m.n.replace(/\W/g,'')+'">OK</span><h3 style="margin:.6rem 0 .2rem">'+m.n+'</h3><div class="note" style="margin-bottom:.6rem">'+m.src+'</div><p>'+m.f+'</p><p class="mono note" style="margin:0">Ugello '+m.noz+' · Piatto '+m.bed+'<br>Uso tipico: '+m.use+'</p>'; grid.appendChild(d);});
+  const sl=$('#tempSlider');
+  function upd(){
+    const T=+sl.value; $('#tempOut').textContent=T+' °C';
+    $('#tempScene').textContent=T<35?'Una stanza normale.':T<55?'Un pomeriggio di sole sulla spiaggia, o una macchina al sole con i finestrini aperti.':T<80?'Il cruscotto di un\'auto parcheggiata al sole d\'estate può arrivare a queste temperature.':T<100?'Il vano motore, o una pentola con acqua molto calda.':'Acqua che bolle: oltre questo limite quasi nessuna plastica stampata resiste.';
+    M.forEach(m=>{const el=$('#st-'+m.n.replace(/\W/g,'')); const ok=T<=m.max; el.textContent=ok?'REGGE · fino a ~'+m.max+' °C':'SI DEFORMA'; el.style.background=ok?'color-mix(in srgb,var(--ok) 22%,var(--surface))':'color-mix(in srgb,var(--bad) 22%,var(--surface))'; el.style.color=ok?'var(--ok)':'var(--bad)';});
+    if(T>=75) mission('s7');
+  }
+  sl.addEventListener('input',upd); upd();
+})();
+
+/* ---------- strato 08: applications ---------- */
+(function(){
+  const A=[
+    ['Aerospazio','Venti pezzi in uno','L\'iniettore di carburante dei motori LEAP di GE Aviation, che un tempo si assemblava da circa venti parti, si stampa in metallo come un unico componente, più leggero e più resistente. Nel 2014 una stampante ha funzionato anche sulla Stazione Spaziale.'],
+    ['Medicina','Su misura per ogni paziente','Dalla TAC si ricavano modelli anatomici per preparare un\'operazione, guide di taglio per il chirurgo, impianti e protesi personalizzate. La comunità open source e-NABLE condivide i file di mani protesiche per bambini, stampabili con costi molto bassi.'],
+    ['Edilizia','Case di terra','A Massa Lombarda, vicino a Ravenna, il prototipo TECLA (2021) è un\'abitazione stampata con terra cruda locale, progettata dallo studio Mario Cucinella Architects con l\'azienda italiana WASP. Altre case si stampano in calcestruzzo.'],
+    ['Cibo e campagna','Dal piatto al trattore','Si stampano cioccolato e paste dalle forme impossibili. In ospedali e case di cura si sperimentano purè stampati a forma di cibo vero per chi ha difficoltà a deglutire. In azienda agricola servono ricambi per macchine, supporti per sensori e ugelli di irrigazione su misura.'],
+    ['Officina e ricambi','Il magazzino è un file','Un pezzo di plastica introvabile per una macchina vecchia si ridisegna e si stampa in poche ore. Le aziende tengono scorte digitali invece di scaffali pieni, e producono vicino a dove serve.'],
+    ['Moda e design','Forme impossibili da stampare in altro modo','Occhiali, gioielli e suole di scarpe con strutture a reticolo, più rigide dove serve e più morbide altrove. Alcune sono già prodotte in serie con resina e luce.']
+  ];
+  const chips=$('#appChips'), grid=$('#appGrid'), opened=new Set(); let cur='Tutti';
+  ['Tutti'].concat(A.map(a=>a[0])).forEach(k=>{const b=document.createElement('button'); b.type='button'; b.className='chip'; b.textContent=k; b.setAttribute('aria-pressed',k==='Tutti'); b.addEventListener('click',()=>{cur=k; $$('#appChips .chip').forEach(x=>x.setAttribute('aria-pressed',x===b)); if(k!=='Tutti'){opened.add(k); if(opened.size>=4)mission('s8');} draw();}); chips.appendChild(b);});
+  function draw(){
+    grid.innerHTML=A.filter(a=>cur==='Tutti'||a[0]===cur).map(a=>'<article class="card"><span class="pill">'+a[0].toUpperCase()+'</span><h3 style="margin:.7rem 0 .5rem">'+a[1]+'</h3><p>'+a[2]+'</p></article>').join('');
+  }
+  draw();
+})();
+
+/* ---------- strato 09: first aid ---------- */
+(function(){
+  const B=[
+    ['Gli angoli del pezzo si sollevano dal piatto a metà stampa e la base si incurva.','Warping',['Il materiale si raffredda e si contrae in modo irregolare: piatto troppo freddo, poca aderenza o correnti d\'aria','L\'ugello è troppo grande','La velocità di stampa è troppo bassa'],0,'Le plastiche si restringono raffreddandosi. Se gli strati bassi si raffreddano mentre quelli alti sono caldi, si crea una tensione che stacca gli angoli. Aiutano piatto caldo, adesivo, brim e un ambiente senza correnti.'],
+    ['Tra due torri separate restano sottili fili, come ragnatele.','Stringing',['Il piatto non è livellato','La retrazione è troppo bassa o la temperatura è troppo alta','Il motore dell\'asse Z è difettoso'],1,'Mentre l\'ugello si sposta a vuoto, la plastica molto fluida cola. La retrazione tira indietro il filo; abbassare di qualche grado la temperatura aiuta. Anche il filamento umido peggiora.'],
+    ['Il primo strato viene trascinato dall\'ugello a grumi e non si attacca.','Primo strato',['L\'ugello è troppo lontano dal piatto, oppure il piatto è sporco di grasso','C\'è troppo riempimento','Il colore del filamento è sbagliato'],0,'Il primo strato deve essere schiacciato sul piatto. Se l\'ugello è alto, il filo non si incolla; se il piatto ha ditate o grasso, scivola. Si regola l\'altezza di Z e si pulisce con alcol isopropilico.'],
+    ['Le pareti hanno buchi e fessure, e a tratti sembra che manchi plastica.','Sotto-estrusione',['Ci sono troppe pareti perimetrali','Ugello parzialmente intasato, temperatura bassa o filo che slitta nell\'estrusore','Il piatto è troppo caldo'],1,'La macchina ordina più plastica di quella che arriva. Controlla il tubo del filo, la temperatura, l\'estrusore che slitta e l\'eventuale ugello sporco.'],
+    ['A metà altezza, tutti gli strati successivi sono spostati di lato, come un gradino.','Salto di strati',['Cinghia lenta, urto contro il pezzo o velocità troppo alta: i motori perdono passi','Il filamento è umido','Il riempimento è troppo basso'],0,'I motori passo-passo contano i passi senza verificare dove si trovano. Se un urto o una cinghia lenta li fa saltare, la macchina continua come se niente fosse, e tutto si sposta.'],
+    ['La base del pezzo è un po\' più larga del resto, con un bordo rigonfio.','Piede d\'elefante',['La ventola è troppo forte','L\'ugello è da 0,6 mm','I primi strati, schiacciati e caldi, si allargano sotto il peso del pezzo: piatto troppo caldo o Z troppo basso'],2,'Gli strati iniziali restano morbidi a lungo perché il piatto è caldo e vengono schiacciati dal peso. Si abbassa la temperatura del piatto o si compensa nello slicer.']
+  ];
+  const box=$('#bugBox'); let i=0, score=0, order;
+  const rn=a=>a.map(v=>[Math.random(),v]).sort((x,y)=>x[0]-y[0]).map(x=>x[1]);
+  function show(){
+    if(i>=B.length){
+      box.innerHTML='<div class="kicker">Fine dei casi</div><div class="big" style="margin:.6rem 0">'+score+' su '+B.length+' diagnosi giuste</div><p>'+(score>=4?'Hai l\'occhio del tecnico. Missione compiuta.':'Serve ancora un po\' di pratica: riprova, i casi cambiano ordine.')+'</p><button class="btn" id="bugAgain" type="button">Ricomincia</button>';
+      $('#bugAgain').addEventListener('click',()=>{i=0;score=0;show();}); if(score>=4)mission('s9'); return;
+    }
+    const b=B[i]; order=rn([0,1,2]);
+    box.innerHTML='<div class="kicker">Caso '+(i+1)+' di '+B.length+' · punti '+score+'</div><h3 style="margin:.6rem 0">'+b[0]+'</h3><p class="note">Qual è la causa più probabile?</p><div id="bugOpts"></div><div id="bugFb"></div>';
+    order.forEach(k=>{const o=document.createElement('button'); o.type='button'; o.className='opt'; o.textContent=b[2][k]; o.addEventListener('click',()=>answer(o,k)); $('#bugOpts').appendChild(o);});
+  }
+  function answer(btn,k){
+    const b=B[i], ok=k===b[3]; if(ok)score++;
+    $$('#bugOpts .opt').forEach((o,j)=>{o.disabled=true; if(order[j]===b[3])o.classList.add('ok');}); if(!ok)btn.classList.add('bad');
+    $('#bugFb').innerHTML='<div class="fb"><b>'+(ok?'Esatto. ':'Non proprio. ')+'Si chiama '+b[1]+'.</b> '+b[4]+'</div><button class="btn" id="bugNext" type="button" style="margin-top:.8rem">'+(i===B.length-1?'Vedi il risultato':'Prossimo caso')+'</button>';
+    $('#bugNext').addEventListener('click',()=>{i++;show();}); $('#bugNext').focus({preventScroll:true});
+  }
+  show();
+})();
+
+/* ---------- strato 10: quiz ---------- */
+(function(){
+  const Q=[
+    ['Che cosa significa che una tecnologia è "additiva"?',['Il materiale viene aggiunto dove serve, strato dopo strato','Si aggiungono colori diversi al materiale','Si aggiunge un blocco intero e poi si taglia'],0,'Additiva si contrappone a sottrattiva: si costruisce aggiungendo materiale invece di toglierlo da un blocco.'],
+    ['Quale file contiene i comandi che la stampante esegue davvero?',['.stl','.gcode','.jpg'],1,'L\'STL descrive solo la forma. Lo slicer lo trasforma in G-code, un elenco di comandi di movimento e temperatura.'],
+    ['Quale parte di una stampante FDM scalda e fonde il filamento?',['Il piatto','Il motore passo-passo','L\'hotend'],2,'L\'hotend è il blocco riscaldante, con ugello e termistore. Il piatto, invece, aiuta l\'aderenza.'],
+    ['Passando il riempimento (infill) dal 20% all\'80%, che cosa succede di solito?',['Il pezzo si stampa più in fretta','Aumentano peso, consumo di filo e tempo','Il pezzo diventa più trasparente'],1,'Più infill vuol dire più materiale da depositare: più peso, più filo e più tempo.'],
+    ['Quale tecnologia indurisce una resina liquida con la luce UV?',['SLA / MSLA','FDM','SLS'],0,'La stereolitografia lavora con resina fotosensibile. È la tecnologia dei dettagli finissimi.'],
+    ['Perché un oggetto in PLA lasciato in auto in estate può deformarsi?',['Il PLA si scioglie nell\'aria umida','Il PLA si ammorbidisce già attorno ai 55-60 °C','Il sole cambia il colore e quindi la forma'],1,'Il PLA ha una temperatura di transizione vetrosa bassa. Per usi caldi si preferiscono PETG, ABS o nylon.'],
+    ['Quale vantaggio è tipico della manifattura additiva?',['Costa sempre meno dello stampaggio','Permette forme complesse senza costruire uno stampo','È sempre più veloce per mille pezzi uguali'],1,'Il vantaggio è la libertà di forma e la personalizzazione. Per grandi tirature identiche lo stampaggio resta più conveniente.'],
+    ['Che cosa fa il comando G1 X50 Y20 E2.1?',['Accende la ventola al 50%','Sposta l\'ugello in X50 Y20 depositando plastica','Azzera la stampante'],1,'G1 è un movimento controllato, X e Y sono le coordinate in millimetri, E è la quantità di filamento da spingere.']
+  ];
+  const RANK=['Apprendista Ugello','Apprendista Ugello','Apprendista Ugello','Tecnico del Primo Strato','Tecnico del Primo Strato','Operatore Slicer','Operatore Slicer','Ingegnere Additivo','Maestro dello Strato'];
+  const box=$('#quizBox'); let i=0, score=0, order;
+  const rn=a=>a.map(v=>[Math.random(),v]).sort((x,y)=>x[0]-y[0]).map(x=>x[1]);
+  function show(){
+    if(i>=Q.length){
+      box.innerHTML='<div class="kicker">Il tuo grado</div><div class="rank" style="margin:.5rem 0">'+RANK[score]+'</div><div class="big">'+score+' / '+Q.length+'</div><p style="margin-top:.8rem">'+(score>=7?'Eccellente. Hai capito il processo, non solo i nomi.':score>=5?'Buona base. Torna sugli strati dove hai sbagliato e riprova.':'Rivedi il percorso dall\'inizio: ogni strato spiega la domanda che ti ha fermato.')+'</p><button class="btn" id="qAgain" type="button">Rifai il quiz</button>';
+      $('#qAgain').addEventListener('click',()=>{i=0;score=0;show();}); mission('s10'); if(score>=7)confetti(); return;
+    }
+    const q=Q[i]; order=rn([0,1,2]);
+    box.innerHTML='<div class="kicker">Domanda '+(i+1)+' di '+Q.length+'</div><h3 style="margin:.6rem 0">'+q[0]+'</h3><div id="qOpts"></div><div id="qFb"></div>';
+    order.forEach(k=>{const o=document.createElement('button'); o.type='button'; o.className='opt'; o.textContent=q[1][k]; o.addEventListener('click',()=>ans(o,k)); $('#qOpts').appendChild(o);});
+  }
+  function ans(btn,k){
+    const q=Q[i], ok=k===q[2]; if(ok)score++;
+    $$('#qOpts .opt').forEach((o,j)=>{o.disabled=true; if(order[j]===q[2])o.classList.add('ok');}); if(!ok)btn.classList.add('bad');
+    $('#qFb').innerHTML='<div class="fb"><b>'+(ok?'Giusto. ':'Sbagliato. ')+'</b>'+q[3]+'</div><button class="btn" id="qNext" type="button" style="margin-top:.8rem">'+(i===Q.length-1?'Vedi il tuo grado':'Avanti')+'</button>';
+    $('#qNext').addEventListener('click',()=>{i++;show();}); $('#qNext').focus({preventScroll:true});
+  }
+  function confetti(){
+    if(reduce)return;
+    const c=document.createElement('canvas'); c.style.cssText='position:fixed;inset:0;width:100%;height:100%;pointer-events:none;z-index:50'; document.body.appendChild(c);
+    const g=c.getContext('2d'); c.width=innerWidth; c.height=innerHeight;
+    const col=[cv('--accent'),cv('--cool'),cv('--ok'),cv('--ink')];
+    const P=Array.from({length:120},()=>({x:Math.random()*c.width,y:-20-Math.random()*c.height*.5,vy:2+Math.random()*3,vx:-1+Math.random()*2,s:4+Math.random()*6,c:col[Math.floor(Math.random()*col.length)]}));
+    let f=0; (function a(){g.clearRect(0,0,c.width,c.height); P.forEach(p=>{p.x+=p.vx;p.y+=p.vy;g.fillStyle=p.c;g.fillRect(p.x,p.y,p.s,p.s);}); if(++f<200)requestAnimationFrame(a); else c.remove();})();
+  }
+  show();
+})();
+
+/* ---------- strato 11: ethics + glossary ---------- */
+(function(){
+  const E=[
+    ['Aria che respiri','Alcuni filamenti, soprattutto ABS e ASA, rilasciano composti organici volatili e particelle ultrafini durante la stampa. Il PLA ne emette meno, ma non zero. Un ugello a 220 °C e un piatto a 60 °C causano anche ustioni.','Aula chiusa e ventilata, sempre','PLA e stampante dentro un box chiuso'],
+    ['Ambiente','Si produce solo quello che serve, vicino a dove serve, con pochi scarti. Ma un prototipo gettato dopo un giorno è comunque plastica, e il PLA si degrada davvero solo negli impianti di compostaggio industriali.','Vantaggi maggiori degli sprechi','Sprechi maggiori dei vantaggi'],
+    ['Idee di altri','Molti modelli online hanno una licenza (per esempio Creative Commons) che dice chi può stamparli, modificarli o venderne le copie. Copiare un pezzo brevettato per venderlo è un\'altra questione ancora. La licenza si legge sempre.','Per uso personale non servono permessi','Serve sempre controllare la licenza'],
+    ['Si può stampare di tutto?','In molti Paesi, Italia compresa, fabbricare armi senza autorizzazione è reato. Gli oggetti stampati non hanno numero di serie e sono difficili da tracciare. Chi progetta, chi condivide i file e chi vende le macchine ha delle responsabilità?','Responsabilità anche di chi condivide','Responsabilità solo di chi usa']
+  ];
+  const g=$('#ethGrid');
+  E.forEach((e,i)=>{const d=document.createElement('div'); d.className='card'; d.innerHTML='<div class="kicker">Tema '+(i+1)+'</div><h3 style="margin:.4rem 0 .6rem">'+e[0]+'</h3><p>'+e[1]+'</p><div class="vote"><button class="btn ghost" type="button">'+e[2]+'</button><button class="btn ghost" type="button">'+e[3]+'</button></div><p class="note" style="margin:.7rem 0 0"></p>';
+    $$('button',d).forEach(b=>b.addEventListener('click',()=>{$$('button',d).forEach(x=>{x.classList.add('ghost'); x.style.background='';}); b.classList.remove('ghost'); $('.note',d).textContent='La tua posizione: "'+b.textContent+'". Ora difendi per trenta secondi quella opposta.';})); g.appendChild(d);});
+  const G=[
+    ['Additivo','Procedimento che costruisce un oggetto aggiungendo materiale, di solito strato su strato.'],
+    ['Slicer','Programma che affetta un modello 3D in strati e genera il G-code.'],
+    ['G-code','Linguaggio di comandi (movimenti, temperature) letto dalla stampante.'],
+    ['STL','Formato che descrive la superficie di un oggetto con triangoli. Non contiene unità né colore.'],
+    ['3MF','Formato più moderno dell\'STL, che porta anche unità, colori e impostazioni.'],
+    ['Infill','Riempimento interno del pezzo, in percentuale. Meno infill, pezzo più leggero e debole.'],
+    ['Ugello','Punta da cui esce la plastica fusa. Il diametro più comune è 0,4 mm.'],
+    ['Hotend','Gruppo caldo che fonde il filamento: blocco riscaldante, termistore, heat break e ugello.'],
+    ['Estrusore','Meccanismo che spinge il filamento verso l\'hotend.'],
+    ['Warping','Deformazione del pezzo che si solleva dal piatto per il ritiro del materiale in raffreddamento.'],
+    ['Stringing','Fili sottili lasciati tra parti separate durante gli spostamenti dell\'ugello.'],
+    ['Retrazione','Piccolo ritiro del filo prima di uno spostamento, per evitare colature.'],
+    ['Supporti','Strutture temporanee che reggono le parti sospese e si tolgono a fine stampa.'],
+    ['Brim','Bordo piatto attorno alla base del pezzo, per aumentare l\'aderenza al piatto.'],
+    ['Overhang','Parte che sporge nel vuoto: sopra un certo angolo (circa 45°) richiede supporti.'],
+    ['Tolleranza','Differenza accettata tra la misura progettata e quella reale. Con FDM tipicamente 0,1-0,3 mm.']
+  ];
+  const q=$('#glossQ'), l=$('#glossList');
+  function gl(){const s=q.value.trim().toLowerCase(); const r=G.filter(x=>!s||(x[0]+' '+x[1]).toLowerCase().includes(s));
+    l.innerHTML=r.length?r.map(x=>'<div class="stat"><b>'+x[0]+'</b><br><small>'+x[1]+'</small></div>').join(''):'<p class="note">Nessun termine trovato.</p>';}
+  q.addEventListener('input',gl); gl();
+})();
+
+})();
+</script>
+</body>
+</html>
