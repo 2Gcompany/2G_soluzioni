@@ -1,21 +1,34 @@
-# 2G Soluzioni
+# Layer Lab
 
-Repository della mini startup della classe 5E dell'ITIS Galileo Galilei.
+Sito interattivo che spiega la **stampa 3D** (manifattura additiva) agli studenti di quarta superiore.
+È una pagina unica, senza librerie da installare: basta aprire `index.html` in un browser.
 
-## Struttura
+## Contenuto
 
-- `lezioni/` – materiale delle lezioni
-- `progetti/` – i progetti della startup, uno per cartella
-- `wiki/` – documentazione e appunti condivisi
+Undici "strati" (sezioni):
 
-## Progetti
+1. Il quadro generale: additivo, sottrattivo, formativo e storia
+2. Dal file all'oggetto: il flusso di lavoro, con gioco di ordinamento
+3. Anatomia di una stampante FDM
+4. G-code: editor con anteprima del percorso
+5. Slicer Lab: tempo, peso e qualità
+6. Tecnologie: FDM, SLA, SLS, metallo
+7. Materiali e test del caldo
+8. Applicazioni nel mondo reale
+9. Pronto soccorso stampa: diagnosi dei difetti
+10. Quiz finale con grado
+11. Sicurezza, ambiente, responsabilità e glossario
 
-- [Backup Foto (rsync-ui)](progetti/rsync-ui/README.md) – interfaccia semplice per copiare le foto
-  da scheda SD o fotocamera a un disco di backup; prototipo cliccabile.
+## Pubblicare su GitHub Pages
 
-- [Braccio robotico](progetti/braccio-robotico/README.md) – simulazione di un braccio a tre giunti con pinza e comandi seriali per Arduino.
+1. Su github.com clicca **New repository**, scegli un nome (per esempio `layer-lab`) e lascia **Public**.
+2. Nel repository clicca **uploading an existing file**, trascina `index.html` e `README.md`, poi **Commit changes**.
+3. Vai in **Settings → Pages**. In *Build and deployment* scegli **Deploy from a branch**, branch `main`, cartella `/ (root)`, poi **Save**.
+4. Dopo uno o due minuti il sito è online su `https://IL-TUO-UTENTE.github.io/layer-lab/`.
 
-## Strumenti
+## Note tecniche
 
-- [opencode](installazione_opencode/README.md)-guida all'istalazione del tool opencode nel terminale nel codespace
-- 
+- Tutto il codice (HTML, CSS, JavaScript) è dentro `index.html`.
+- I font (Unbounded, Figtree, JetBrains Mono) arrivano da Google Fonts. Senza connessione la pagina usa i font di sistema e funziona lo stesso.
+- Funziona su computer e telefono, con tema chiaro e scuro.
+- I valori numerici dei simulatori sono semplificati a scopo didattico.
