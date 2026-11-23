@@ -1,23 +1,20 @@
-# 2G Soluzioni
+<div align="center">
+<img width="1200" height="475" alt="GHBanner" src="https://ai.google.dev/static/site-assets/images/share-ais-513315318.png" />
+</div>
 
-Repository della mini startup della classe 5E dell'ITIS Galileo Galilei.
+# Run and deploy your AI Studio app
 
-## Struttura
+This contains everything you need to run your app locally.
 
-- `lezioni/` – materiale delle lezioni
-- `progetti/` – i progetti della startup, uno per cartella
-- `wiki/` – documentazione e appunti condivisi
+View your app in AI Studio: https://ai.studio/apps/9ecfcd52-1067-4046-8b7b-03a8e1ca1f5d
 
-## Progetti
+## Run Locally
 
-- [Backup Foto (rsync-ui)](progetti/rsync-ui/README.md) – interfaccia semplice per copiare le foto
-  da scheda SD o fotocamera a un disco di backup; prototipo cliccabile.
-
-- [Braccio robotico](progetti/braccio-robotico/README.md) – simulazione di un braccio a tre giunti con pinza e comandi seriali per Arduino.
-- [stampante 3d](featureslezione-stampante3d/progetti)-simulazione e spiegazione della stampa 3d
+**Prerequisites:**  Node.js
 
 
-## Strumenti
-
-- [opencode](installazione_opencode/README.md)-guida all'istalazione del tool opencode nel terminale nel codespace
-- 
+1. Install dependencies:
+   `npm install`
+2. Set the `GEMINI_API_KEY` in [.env.local](.env.local) to your Gemini API key
+3. Run the app:
+   `npm run dev`

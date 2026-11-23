@@ -1,0 +1,6 @@
+{
+  "name": "Guida C# File & Stream - Corso Didattico per Scuole Superiori",
+  "description": "Corso pratico in 9 lezioni per studenti di scuola superiore sulla gestione dei file in C#: dalla classe File a StreamReader/Writer, CSV e progetto finale, con analogie del quaderno e simulatore console interattivo.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
