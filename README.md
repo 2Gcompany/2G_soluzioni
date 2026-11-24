@@ -1,14 +1,14 @@
-# 2G Soluzioni
+<div align="center">
+<img width="1200" height="475" alt="GHBanner" src="https://ai.google.dev/static/site-assets/images/share-ais-513315318.png" />
+</div>
 
-Repository della mini startup della classe 5E dell'ITIS Galileo Galilei.
+# Run and deploy your AI Studio app
 
-## Struttura
+This contains everything you need to run your app locally.
 
-- `lezioni/` – materiale delle lezioni
-- `progetti/` – i progetti della startup, uno per cartella
-- `wiki/` – documentazione e appunti condivisi
+View your app in AI Studio: https://ai.studio/apps/9ecfcd52-1067-4046-8b7b-03a8e1ca1f5d
 
-## Progetti
+## Run Locally
 
 - [Backup Foto (rsync-ui)](progetti/rsync-ui/README.md) – interfaccia semplice per copiare le foto
   da scheda SD o fotocamera a un disco di backup; prototipo cliccabile.
