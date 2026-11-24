@@ -1,0 +1,1647 @@
+<!DOCTYPE html>
+<html lang="it" data-theme="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>C# File Studio · Laboratorio Didattico per Scuole Superiori</title>
+  <meta name="description" content="Laboratorio moderno di programmazione C# sui file e gli stream per studenti di scuola superiore: 9 tappe con codice interattivo, quaderno virtuale e simulatore console." />
+  <meta property="og:title" content="C# File Studio · Laboratorio Didattico per Scuole Superiori" />
+  <meta property="og:description" content="Laboratorio moderno di programmazione C# sui file e gli stream per studenti di scuola superiore: 9 tappe con codice interattivo, quaderno virtuale e simulatore console." />
+  <meta property="og:type" content="website" />
+
+  <!-- Google Fonts: Space Grotesk + JetBrains Mono + Inter -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet" />
+
+  <style>
+    /* =========================================================================
+       1. DESIGN SYSTEM: PALETTE, VARIABILI E RESET
+       ========================================================================= */
+    :root {
+      /* Tema Scuro (Default moderno per editor e studenti tech) */
+      --color-canvas: #090d16;
+      --color-surface: #101626;
+      --color-surface-elevated: #161e33;
+      --color-surface-card: #131a2e;
+      --color-border-subtle: #1e293b;
+      --color-border-strong: #334155;
+
+      --color-text-primary: #f1f5f9;
+      --color-text-secondary: #94a3b8;
+      --color-text-muted: #64748b;
+
+      --color-blue: #3b82f6;
+      --color-blue-glow: rgba(59, 130, 246, 0.15);
+      --color-cyan: #06b6d4;
+      --color-emerald: #10b981;
+      --color-emerald-glow: rgba(16, 185, 129, 0.25);
+      --color-amber: #f59e0b;
+      --color-rose: #f43f5e;
+
+      /* Sintassi C# Editor */
+      --syn-keyword: #60a5fa;
+      --syn-type: #38bdf8;
+      --syn-string: #34d399;
+      --syn-method: #f472b6;
+      --syn-comment: #64748b;
+      --syn-number: #fbbf24;
+
+      --font-display: 'Space Grotesk', -apple-system, BlinkMacSystemFont, sans-serif;
+      --font-body: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      --font-code: 'JetBrains Mono', monospace;
+
+      --radius-sm: 6px;
+      --radius-md: 10px;
+      --radius-lg: 14px;
+      --radius-xl: 18px;
+
+      --transition-standard: 180ms cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    [data-theme="light"] {
+      /* Tema Chiaro Curato */
+      --color-canvas: #f8fafc;
+      --color-surface: #ffffff;
+      --color-surface-elevated: #f1f5f9;
+      --color-surface-card: #ffffff;
+      --color-border-subtle: #e2e8f0;
+      --color-border-strong: #cbd5e1;
+
+      --color-text-primary: #0f172a;
+      --color-text-secondary: #475569;
+      --color-text-muted: #94a3b8;
+
+      --color-blue: #2563eb;
+      --color-blue-glow: rgba(37, 99, 235, 0.12);
+      --color-cyan: #0891b2;
+      --color-emerald: #059669;
+      --color-emerald-glow: rgba(5, 150, 105, 0.2);
+      --color-amber: #d97706;
+      --color-rose: #e11d48;
+
+      /* Sintassi C# Editor Chiaro */
+      --syn-keyword: #1d4ed8;
+      --syn-type: #0369a1;
+      --syn-string: #047857;
+      --syn-method: #be185d;
+      --syn-comment: #94a3b8;
+      --syn-number: #b45309;
+    }
+
+    *, *::before, *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    html, body {
+      height: 100%;
+      background-color: var(--color-canvas);
+      color: var(--color-text-primary);
+      font-family: var(--font-body);
+      font-size: 14px;
+      line-height: 1.5;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+    }
+
+    /* Accessibilità tastiera */
+    :focus-visible {
+      outline: 2px solid var(--color-cyan);
+      outline-offset: 2px;
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+      }
+    }
+
+    /* =========================================================================
+       2. STRUTTURA APPLICAZIONE (APP SHELL)
+       ========================================================================= */
+    .app-root {
+      display: flex;
+      flex-direction: column;
+      min-height: 100vh;
+    }
+
+    /* Header Superiore */
+    .app-header {
+      background: var(--color-surface);
+      border-bottom: 1px solid var(--color-border-subtle);
+      padding: 0.75rem 1.25rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1rem;
+      position: sticky;
+      top: 0;
+      z-index: 50;
+    }
+
+    .brand-wrap {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+
+    .brand-logo {
+      width: 34px;
+      height: 34px;
+      background: linear-gradient(135deg, var(--color-blue), var(--color-cyan));
+      border-radius: var(--radius-md);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #ffffff;
+      font-family: var(--font-code);
+      font-weight: 700;
+      font-size: 0.85rem;
+      box-shadow: 0 2px 8px var(--color-blue-glow);
+    }
+
+    .brand-text h1 {
+      font-family: var(--font-display);
+      font-size: 1.05rem;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      color: var(--color-text-primary);
+      line-height: 1.2;
+    }
+
+    .brand-text p {
+      font-size: 0.75rem;
+      color: var(--color-text-secondary);
+    }
+
+    .header-actions {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+
+    /* Pulsante Tema */
+    .btn-icon {
+      background: var(--color-surface-elevated);
+      border: 1px solid var(--color-border-subtle);
+      color: var(--color-text-secondary);
+      border-radius: var(--radius-sm);
+      width: 32px;
+      height: 32px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: color var(--transition-standard), border-color var(--transition-standard);
+    }
+    .btn-icon:hover {
+      color: var(--color-text-primary);
+      border-color: var(--color-border-strong);
+    }
+
+    /* Barra Progresso Compatta in Header */
+    .progress-pill {
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+      background: var(--color-surface-elevated);
+      border: 1px solid var(--color-border-subtle);
+      padding: 0.35rem 0.75rem;
+      border-radius: 9999px;
+      font-size: 0.75rem;
+      font-weight: 500;
+    }
+
+    .progress-track {
+      width: 70px;
+      height: 6px;
+      background: var(--color-border-subtle);
+      border-radius: 9999px;
+      overflow: hidden;
+    }
+
+    .progress-fill {
+      height: 100%;
+      background: linear-gradient(90deg, var(--color-blue), var(--color-emerald));
+      width: 11%;
+      transition: width 350ms cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    /* Layout Principale a Tre Aree */
+    .main-workspace {
+      display: grid;
+      grid-template-columns: 280px 1fr 340px;
+      gap: 1.25rem;
+      max-width: 1560px;
+      width: 100%;
+      margin: 0 auto;
+      padding: 1.25rem;
+      flex: 1;
+    }
+
+    /* Colonna 1: Mappa delle Tappe */
+    .sidebar-map {
+      background: var(--color-surface);
+      border: 1px solid var(--color-border-subtle);
+      border-radius: var(--radius-lg);
+      padding: 1rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+      height: fit-content;
+      position: sticky;
+      top: 4.5rem;
+    }
+
+    .sidebar-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding-bottom: 0.75rem;
+      border-bottom: 1px solid var(--color-border-subtle);
+    }
+
+    .sidebar-header h2 {
+      font-family: var(--font-display);
+      font-size: 0.85rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--color-text-secondary);
+      font-weight: 700;
+    }
+
+    .tappe-list {
+      display: flex;
+      flex-direction: column;
+      gap: 0.35rem;
+      list-style: none;
+    }
+
+    .tappa-item {
+      display: flex;
+      align-items: center;
+      gap: 0.65rem;
+      padding: 0.55rem 0.65rem;
+      border-radius: var(--radius-sm);
+      cursor: pointer;
+      color: var(--color-text-secondary);
+      font-size: 0.8rem;
+      border: 1px solid transparent;
+      transition: all var(--transition-standard);
+      position: relative;
+    }
+
+    .tappa-item:hover {
+      background: var(--color-surface-elevated);
+      color: var(--color-text-primary);
+    }
+
+    .tappa-item.active {
+      background: var(--color-surface-elevated);
+      border-color: var(--color-border-strong);
+      color: var(--color-text-primary);
+      font-weight: 600;
+    }
+
+    .tappa-item.completed {
+      color: var(--color-text-primary);
+    }
+
+    .tappa-num {
+      width: 22px;
+      height: 22px;
+      border-radius: var(--radius-sm);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: var(--font-code);
+      font-size: 0.7rem;
+      font-weight: 600;
+      background: var(--color-surface-elevated);
+      color: var(--color-text-muted);
+      flex-shrink: 0;
+      border: 1px solid var(--color-border-subtle);
+    }
+
+    .tappa-item.active .tappa-num {
+      background: var(--color-blue);
+      color: #ffffff;
+      border-color: var(--color-blue);
+    }
+
+    .tappa-item.completed .tappa-num {
+      background: var(--color-emerald);
+      color: #ffffff;
+      border-color: var(--color-emerald);
+    }
+
+    .tappa-text {
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      flex: 1;
+    }
+
+    .tappa-badge {
+      font-size: 0.7rem;
+      padding: 0.1rem 0.35rem;
+      border-radius: var(--radius-sm);
+      background: var(--color-border-subtle);
+      color: var(--color-text-muted);
+    }
+
+    .tappa-item.completed .tappa-badge {
+      background: rgba(16, 185, 129, 0.15);
+      color: var(--color-emerald);
+      font-weight: 600;
+    }
+
+    /* Colonna 2: Editor Esercizio e Card Centrale */
+    .workspace-center {
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+    }
+
+    /* Card della Tappa Corrente */
+    .lesson-meta-card {
+      background: var(--color-surface);
+      border: 1px solid var(--color-border-subtle);
+      border-radius: var(--radius-lg);
+      padding: 1.25rem 1.5rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+    }
+
+    .lesson-badge-row {
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+      font-size: 0.75rem;
+      color: var(--color-cyan);
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .lesson-title {
+      font-family: var(--font-display);
+      font-size: 1.45rem;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      line-height: 1.25;
+      color: var(--color-text-primary);
+    }
+
+    /* Analogia del Quaderno (Stile Box Moderno) */
+    .notebook-analogy-box {
+      background: var(--color-surface-elevated);
+      border-left: 3px solid var(--color-amber);
+      border-radius: 0 var(--radius-md) var(--radius-md) 0;
+      padding: 0.9rem 1.1rem;
+      display: flex;
+      gap: 0.75rem;
+      align-items: flex-start;
+      margin-top: 0.25rem;
+    }
+
+    .analogy-icon {
+      color: var(--color-amber);
+      font-size: 1.1rem;
+      line-height: 1.4;
+      flex-shrink: 0;
+    }
+
+    .analogy-content h4 {
+      font-size: 0.8rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      color: var(--color-amber);
+      margin-bottom: 0.2rem;
+    }
+
+    .analogy-content p {
+      font-size: 0.82rem;
+      color: var(--color-text-secondary);
+      line-height: 1.45;
+    }
+
+    /* Contenitore Editor di Codice C# */
+    .code-editor-card {
+      background: var(--color-surface);
+      border: 1px solid var(--color-border-subtle);
+      border-radius: var(--radius-lg);
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+    }
+
+    .editor-topbar {
+      background: var(--color-surface-elevated);
+      border-bottom: 1px solid var(--color-border-subtle);
+      padding: 0.5rem 1rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.5rem;
+    }
+
+    .editor-tab {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      font-family: var(--font-code);
+      font-size: 0.75rem;
+      color: var(--color-text-primary);
+      font-weight: 500;
+    }
+
+    .editor-tab::before {
+      content: "";
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--color-cyan);
+    }
+
+    .editor-env-tag {
+      font-family: var(--font-code);
+      font-size: 0.65rem;
+      color: var(--color-text-muted);
+      border: 1px solid var(--color-border-subtle);
+      padding: 0.15rem 0.4rem;
+      border-radius: var(--radius-sm);
+    }
+
+    /* Finestra Codice con Syntax Highlighting e Slot Interattivi */
+    .editor-code-body {
+      background: var(--color-canvas);
+      padding: 1.25rem 1rem;
+      font-family: var(--font-code);
+      font-size: 0.82rem;
+      line-height: 1.7;
+      overflow-x: auto;
+      counter-reset: line;
+    }
+
+    .code-line {
+      display: flex;
+      align-items: baseline;
+      min-height: 1.55rem;
+      white-space: pre;
+    }
+
+    .line-number {
+      width: 2.2rem;
+      text-align: right;
+      padding-right: 1rem;
+      color: var(--color-text-muted);
+      user-select: none;
+      font-size: 0.75rem;
+      opacity: 0.6;
+    }
+
+    .line-text {
+      flex: 1;
+      color: var(--color-text-primary);
+    }
+
+    /* Colorazione sintattica */
+    .kw { color: var(--syn-keyword); font-weight: 600; }
+    .type { color: var(--syn-type); }
+    .str { color: var(--syn-string); }
+    .num { color: var(--syn-number); }
+    .method { color: var(--syn-method); }
+    .comment { color: var(--syn-comment); font-style: italic; }
+
+    /* Spazio di Completamento Interattivo (Veri input da IDE) */
+    .code-blank {
+      font-family: var(--font-code);
+      font-size: 0.82rem;
+      background: var(--color-surface-elevated);
+      border: 1px solid var(--color-border-strong);
+      color: var(--color-cyan);
+      padding: 0.15rem 0.45rem;
+      border-radius: var(--radius-sm);
+      min-width: 130px;
+      outline: none;
+      font-weight: 600;
+      transition: all var(--transition-standard);
+      vertical-align: middle;
+      display: inline-block;
+    }
+
+    .code-blank:focus {
+      border-color: var(--color-cyan);
+      box-shadow: 0 0 0 2px var(--color-blue-glow);
+      background: var(--color-surface);
+    }
+
+    .code-blank.correct {
+      border-color: var(--color-emerald) !important;
+      background: var(--color-emerald-glow) !important;
+      color: var(--color-emerald) !important;
+    }
+
+    .code-blank.wrong {
+      border-color: var(--color-rose) !important;
+      background: rgba(244, 63, 94, 0.15) !important;
+      color: var(--color-rose) !important;
+      animation: shake 250ms ease-in-out;
+    }
+
+    @keyframes shake {
+      0%, 100% { transform: translateX(0); }
+      25% { transform: translateX(-4px); }
+      75% { transform: translateX(4px); }
+    }
+
+    /* Barra Strumenti & Pulsanti di Verifica */
+    .editor-action-bar {
+      background: var(--color-surface);
+      border-top: 1px solid var(--color-border-subtle);
+      padding: 0.85rem 1.25rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.75rem;
+      flex-wrap: wrap;
+    }
+
+    .action-group-left {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .action-group-right {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.45rem;
+      font-family: var(--font-body);
+      font-size: 0.8rem;
+      font-weight: 600;
+      padding: 0.5rem 1rem;
+      border-radius: var(--radius-md);
+      cursor: pointer;
+      border: 1px solid transparent;
+      transition: all var(--transition-standard);
+      text-decoration: none;
+    }
+
+    .btn-secondary {
+      background: var(--color-surface-elevated);
+      border-color: var(--color-border-subtle);
+      color: var(--color-text-secondary);
+    }
+    .btn-secondary:hover {
+      color: var(--color-text-primary);
+      border-color: var(--color-border-strong);
+      background: var(--color-surface);
+    }
+
+    .btn-primary {
+      background: var(--color-blue);
+      color: #ffffff;
+      box-shadow: 0 2px 8px var(--color-blue-glow);
+    }
+    .btn-primary:hover {
+      background: #2563eb;
+      transform: translateY(-1px);
+    }
+
+    .btn-next {
+      background: var(--color-emerald);
+      color: #ffffff;
+      box-shadow: 0 2px 8px var(--color-emerald-glow);
+      display: none; /* Attivato al successo */
+    }
+    .btn-next:hover {
+      background: #059669;
+      transform: translateY(-1px);
+    }
+
+    /* Box Suggerimento del Docente */
+    .hint-drawer {
+      background: var(--color-surface-elevated);
+      border: 1px solid var(--color-border-subtle);
+      border-radius: var(--radius-md);
+      padding: 0.75rem 1rem;
+      font-size: 0.8rem;
+      color: var(--color-text-secondary);
+      display: none;
+      margin-top: -0.25rem;
+    }
+    .hint-drawer.open {
+      display: flex;
+      align-items: flex-start;
+      gap: 0.5rem;
+    }
+
+    /* Colonna 3: Doppio Pannello Console & Quaderno / File */
+    .sidebar-preview {
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+    }
+
+    /* Pannello 1: Quaderno e File System */
+    .panel-card {
+      background: var(--color-surface);
+      border: 1px solid var(--color-border-subtle);
+      border-radius: var(--radius-lg);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      flex: 1;
+      min-height: 250px;
+    }
+
+    .panel-header {
+      background: var(--color-surface-elevated);
+      border-bottom: 1px solid var(--color-border-subtle);
+      padding: 0.5rem 0.85rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.5rem;
+    }
+
+    .panel-title {
+      font-family: var(--font-display);
+      font-size: 0.75rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--color-text-secondary);
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+    }
+
+    .file-tab-badge {
+      font-family: var(--font-code);
+      font-size: 0.7rem;
+      padding: 0.15rem 0.5rem;
+      border-radius: var(--radius-sm);
+      background: var(--color-surface);
+      border: 1px solid var(--color-border-subtle);
+      color: var(--color-emerald);
+      font-weight: 600;
+    }
+
+    /* Il Quaderno Virtuale con Effetto Scrittura */
+    .notebook-sheet {
+      background: var(--color-surface-card);
+      padding: 1rem;
+      flex: 1;
+      font-family: var(--font-code);
+      font-size: 0.78rem;
+      color: var(--color-text-primary);
+      overflow-y: auto;
+      max-height: 240px;
+      display: flex;
+      flex-direction: column;
+      gap: 0.4rem;
+      position: relative;
+    }
+
+    .file-line {
+      display: flex;
+      align-items: baseline;
+      gap: 0.6rem;
+      padding: 0.25rem 0.4rem;
+      border-radius: var(--radius-sm);
+      background: var(--color-surface-elevated);
+      border-left: 2px solid var(--color-border-strong);
+      animation: fadeInLine 300ms cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    .file-line.highlight-new {
+      border-left-color: var(--color-emerald);
+      background: var(--color-emerald-glow);
+      animation: pulseNew 1.2s ease-out;
+    }
+
+    @keyframes fadeInLine {
+      from { opacity: 0; transform: translateY(4px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    @keyframes pulseNew {
+      0% { transform: scale(0.98); background: rgba(16, 185, 129, 0.35); }
+      100% { transform: scale(1); background: var(--color-emerald-glow); }
+    }
+
+    .line-idx {
+      color: var(--color-text-muted);
+      font-size: 0.7rem;
+      user-select: none;
+    }
+
+    /* Pannello 2: Terminale Console C# */
+    .terminal-sheet {
+      background: #050811;
+      padding: 0.85rem;
+      flex: 1;
+      font-family: var(--font-code);
+      font-size: 0.75rem;
+      color: #cbd5e1;
+      overflow-y: auto;
+      max-height: 240px;
+      display: flex;
+      flex-direction: column;
+      gap: 0.35rem;
+    }
+
+    .term-line {
+      line-height: 1.45;
+      word-break: break-all;
+    }
+
+    .term-prompt {
+      color: var(--color-cyan);
+      font-weight: 600;
+    }
+
+    .term-success {
+      color: var(--color-emerald);
+      font-weight: 600;
+    }
+
+    .term-warn {
+      color: var(--color-amber);
+    }
+
+    .term-error {
+      color: var(--color-rose);
+      font-weight: 600;
+    }
+
+    /* Schermata di Fine Percorso (Completamento 100%) */
+    .congrats-modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.75);
+      backdrop-filter: blur(4px);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 100;
+      padding: 1rem;
+    }
+
+    .congrats-modal-overlay.show {
+      display: flex;
+      animation: fadeInModal 250ms ease-out;
+    }
+
+    @keyframes fadeInModal {
+      from { opacity: 0; transform: scale(0.96); }
+      to { opacity: 1; transform: scale(1); }
+    }
+
+    .congrats-card {
+      background: var(--color-surface);
+      border: 1px solid var(--color-border-strong);
+      border-radius: var(--radius-xl);
+      max-width: 480px;
+      width: 100%;
+      padding: 2rem;
+      text-align: center;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 1.25rem;
+      box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+    }
+
+    .congrats-trophy {
+      width: 64px;
+      height: 64px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--color-emerald), var(--color-cyan));
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 2rem;
+      box-shadow: 0 0 25px var(--color-emerald-glow);
+    }
+
+    .congrats-card h3 {
+      font-family: var(--font-display);
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: var(--color-text-primary);
+      letter-spacing: -0.02em;
+    }
+
+    .congrats-card p {
+      font-size: 0.85rem;
+      color: var(--color-text-secondary);
+      line-height: 1.5;
+    }
+
+    /* Footer Semplificato */
+    .app-footer {
+      border-top: 1px solid var(--color-border-subtle);
+      background: var(--color-surface);
+      padding: 0.85rem 1.25rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 0.75rem;
+      color: var(--color-text-muted);
+    }
+
+    /* =========================================================================
+       3. RESPONSIVE DESIGN (FINO A 360px)
+       ========================================================================= */
+    @media (max-width: 1100px) {
+      .main-workspace {
+        grid-template-columns: 240px 1fr;
+      }
+      .sidebar-preview {
+        grid-column: 1 / -1;
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+      }
+    }
+
+    @media (max-width: 768px) {
+      .main-workspace {
+        grid-template-columns: 1fr;
+        padding: 0.85rem;
+        gap: 1rem;
+      }
+      .sidebar-map {
+        position: static;
+        order: -1;
+      }
+      .sidebar-preview {
+        grid-template-columns: 1fr;
+      }
+      .app-header {
+        padding: 0.65rem 0.85rem;
+      }
+      .brand-text p {
+        display: none;
+      }
+      .progress-pill {
+        display: none;
+      }
+    }
+
+    @media (max-width: 480px) {
+      .lesson-title {
+        font-size: 1.2rem;
+      }
+      .editor-action-bar {
+        flex-direction: column;
+        align-items: stretch;
+      }
+      .action-group-left, .action-group-right {
+        width: 100%;
+        justify-content: space-between;
+      }
+      .btn {
+        flex: 1;
+        justify-content: center;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="app-root">
+    <!-- Header Topbar -->
+    <header class="app-header">
+      <div class="brand-wrap">
+        <div class="brand-logo">C#</div>
+        <div class="brand-text">
+          <h1>C# File Studio</h1>
+          <p>Laboratorio Didattico di Informatica · Scuole Superiori</p>
+        </div>
+      </div>
+
+      <div class="header-actions">
+        <!-- Barra di progresso dinamica -->
+        <div class="progress-pill" title="Progresso nel percorso dei file">
+          <span id="progressText">1 / 9 completate</span>
+          <div class="progress-track">
+            <div id="progressBar" class="progress-fill" style="width: 11%;"></div>
+          </div>
+        </div>
+
+        <!-- Ricomincia Percorso -->
+        <button id="btnResetAll" class="btn-icon" title="Ricomincia il percorso da zero" aria-label="Ricomincia">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/>
+            <path d="M3 3v5h5"/>
+          </svg>
+        </button>
+
+        <!-- Toggle Tema Chiaro / Scuro -->
+        <button id="btnToggleTheme" class="btn-icon" title="Cambia tema chiaro/scuro" aria-label="Cambia tema">
+          <svg id="themeIcon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <!-- Sole (default in dark) -->
+            <circle cx="12" cy="12" r="4"/>
+            <path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="m17.66 17.66 1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="m6.34 17.66-1.41 1.41"/><path d="m19.07 4.93-1.41 1.41"/>
+          </svg>
+        </button>
+      </div>
+    </header>
+
+    <!-- Workspace Principale -->
+    <main class="main-workspace">
+      <!-- Colonna Sinistra: Mappa delle Tappe -->
+      <nav class="sidebar-map" aria-label="Mappa delle lezioni">
+        <div class="sidebar-header">
+          <h2>Tappe del Corso</h2>
+          <span id="levelBadge" class="tappa-badge">Livello 1</span>
+        </div>
+        <ul id="tappeList" class="tappe-list">
+          <!-- Popolato dinamicamente da JS -->
+        </ul>
+      </nav>
+
+      <!-- Colonna Centro: Editor e Contenuti Didattici -->
+      <section class="workspace-center">
+        <!-- Card Titolo & Analogia del Quaderno -->
+        <div class="lesson-meta-card">
+          <div class="lesson-badge-row">
+            <span id="lessonTag">Tappa 1 di 9</span>
+            <span>·</span>
+            <span id="lessonCategory">Classe File</span>
+          </div>
+          <h2 id="lessonTitle" class="lesson-title">Perché servono i file? (RAM vs Disco)</h2>
+
+          <!-- Box Analogia del Quaderno -->
+          <div class="notebook-analogy-box">
+            <div class="analogy-icon">📓</div>
+            <div class="analogy-content">
+              <h4>L'Analogia del Quaderno</h4>
+              <p id="lessonAnalogy">
+                La lavagna dell'aula si cancella a fine ora (RAM volatile). Il quaderno nello zaino conserva gli appunti per tutto l'anno (File permanente su disco).
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Box Editor di Codice con Syntax Highlighting -->
+        <div class="code-editor-card">
+          <div class="editor-topbar">
+            <div class="editor-tab">
+              <span id="editorFilename">Program.cs</span>
+            </div>
+            <span class="editor-env-tag">.NET 9 · C# Console</span>
+          </div>
+
+          <!-- Finestra di Codice con Righe -->
+          <div id="codeWindow" class="editor-code-body">
+            <!-- Il template del codice con input slot viene iniettato qui -->
+          </div>
+
+          <!-- Cassetto Suggerimento -->
+          <div id="hintDrawer" class="hint-drawer">
+            <span style="color: var(--color-amber);">💡</span>
+            <span id="hintText">Usa File.WriteAllText per salvare la stringa sul disco fisso.</span>
+          </div>
+
+          <!-- Barra Azioni di Verifica -->
+          <div class="editor-action-bar">
+            <div class="action-group-left">
+              <button id="btnHint" class="btn btn-secondary">
+                <span>Suggerimento</span>
+              </button>
+            </div>
+
+            <div class="action-group-right">
+              <button id="btnVerify" class="btn btn-primary">
+                <span>Verifica Codice</span>
+              </button>
+              <button id="btnNext" class="btn btn-next">
+                <span>Prossimo esercizio &rarr;</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Colonna Destra: Pannelli Live (Quaderno / File e Terminale Console) -->
+      <aside class="sidebar-preview">
+        <!-- Pannello 1: Quaderno e File System -->
+        <div class="panel-card">
+          <div class="panel-header">
+            <div class="panel-title">
+              <span>Quaderno &amp; File</span>
+            </div>
+            <span id="activeFileTag" class="file-tab-badge">promemoria.txt</span>
+          </div>
+          <div id="notebookSheet" class="notebook-sheet">
+            <div class="file-line">
+              <span class="line-idx">1</span>
+              <span>[Disco vuoto: esegui l'esercizio per scrivere il file]</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Pannello 2: Terminale Console C# -->
+        <div class="panel-card">
+          <div class="panel-header">
+            <div class="panel-title">
+              <span>Terminale Console</span>
+            </div>
+            <span style="font-family: var(--font-code); font-size: 0.68rem; color: var(--color-text-muted);">dotnet run</span>
+          </div>
+          <div id="terminalSheet" class="terminal-sheet">
+            <div class="term-line term-prompt">> dotnet run</div>
+            <div class="term-line" style="color: var(--color-text-muted);">In attesa di compilazione...</div>
+          </div>
+        </div>
+      </aside>
+    </main>
+
+    <!-- Footer -->
+    <footer class="app-footer">
+      <span>C# File Studio · Corso Didattico per Scuole Superiori (14-18 anni)</span>
+      <span>System.IO · File · StreamReader &amp; StreamWriter · CSV</span>
+    </footer>
+
+    <!-- Schermata Finale Congratulazioni -->
+    <div id="congratsModal" class="congrats-modal-overlay">
+      <div class="congrats-card">
+        <div class="congrats-trophy">🎓</div>
+        <h3>Percorso C# Completato!</h3>
+        <p>
+          Hai superato tutte le 9 tappe con successo: dalla classe <strong>File</strong> agli <strong>Stream</strong>, fino alla gestione sicura con <strong>try/catch</strong> e alle tabelle <strong>CSV</strong>.
+        </p>
+        <button id="btnRestartCourse" class="btn btn-primary" style="padding: 0.65rem 1.5rem; font-size: 0.9rem;">
+          Ricomincia il percorso
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- =========================================================================
+       4. JAVASCRIPT: LOGICA DEGLI ESERCIZI, STATO E ANIMAZIONE
+       ========================================================================= -->
+  <script>
+    // Dati didattici delle 9 lezioni/esercizi
+    const LESSONS = [
+      {
+        id: 1,
+        title: "Perché servono i file? (RAM vs Disco)",
+        category: "Introduzione & Persistenza",
+        analogy: "La lavagna dell'aula si cancella al suono della campanella (RAM volatile). Il tuo quaderno nello zaino conserva gli appunti per tutto l'anno scolastico (File su disco).",
+        fileName: "promemoria.txt",
+        hint: "Per salvare il promemoria permanente su disco usiamo File.WriteAllText.",
+        blankTarget: "WriteAllText",
+        codeLines: [
+          { num: 1, text: `<span class="kw">using</span> System;` },
+          { num: 2, text: `<span class="kw">using</span> <span class="type">System.IO</span>; <span class="comment">// Necessario per i file</span>` },
+          { num: 3, text: `` },
+          { num: 4, text: `<span class="kw">class</span> <span class="type">Program</span>` },
+          { num: 5, text: `{` },
+          { num: 6, text: `    <span class="kw">static void</span> <span class="method">Main</span>()` },
+          { num: 7, text: `    {` },
+          { num: 8, text: `        <span class="type">string</span> appunto = <span class="str">"Questo testo resiste allo spegnimento!"</span>;` },
+          { num: 9, text: `        <span class="comment">// Salva sul disco fisso:</span>` },
+          { num: 10, text: `        <span class="type">File</span>.<slot></slot>(<span class="str">"promemoria.txt"</span>, appunto);` },
+          { num: 11, text: `        <span class="type">Console</span>.<span class="method">WriteLine</span>(<span class="str">"Appunto salvato sul disco!"</span>);` },
+          { num: 12, text: `    }` },
+          { num: 13, text: `}` }
+        ],
+        expectedConsole: `Appunto salvato sul disco!\n[Disco Fisso] Creato 'promemoria.txt'`,
+        resultFileLine: "Questo testo resiste allo spegnimento!"
+      },
+      {
+        id: 2,
+        title: "Scrivere un file (Sovrascrittura)",
+        category: "Classe File",
+        analogy: "WriteAllText è come strappare una pagina e incollarne una nuova: se il file esisteva già, il vecchio testo viene completamente cancellato e rimpiazzato.",
+        fileName: "nota.txt",
+        hint: "Usa File.WriteAllText per scrivere una stringa nel file specificato.",
+        blankTarget: "WriteAllText",
+        codeLines: [
+          { num: 1, text: `<span class="kw">using</span> System;` },
+          { num: 2, text: `<span class="kw">using</span> <span class="type">System.IO</span>;` },
+          { num: 3, text: `` },
+          { num: 4, text: `<span class="kw">class</span> <span class="type">Program</span>` },
+          { num: 5, text: `{` },
+          { num: 6, text: `    <span class="kw">static void</span> <span class="method">Main</span>()` },
+          { num: 7, text: `    {` },
+          { num: 8, text: `        <span class="type">string</span> messaggio = <span class="str">"Prima riga di appunti"</span>;` },
+          { num: 9, text: `        <span class="type">File</span>.<slot></slot>(<span class="str">"nota.txt"</span>, messaggio);` },
+          { num: 10, text: `        <span class="type">Console</span>.<span class="method">WriteLine</span>(<span class="str">"File nota.txt creato con successo."</span>);` },
+          { num: 11, text: `    }` },
+          { num: 12, text: `}` }
+        ],
+        expectedConsole: `File nota.txt creato con successo.\nFile scritto e chiuso.`,
+        resultFileLine: "Prima riga di appunti"
+      },
+      {
+        id: 3,
+        title: "Leggere un file riga per riga",
+        category: "Classe File",
+        analogy: "File.ReadAllLines è come leggere il quaderno con il dito che scorre: carica ogni riga in una casella di un array ordinato string[].",
+        fileName: "voti.txt",
+        hint: "Per ottenere un array di stringhe una per riga si usa File.ReadAllLines.",
+        blankTarget: "ReadAllLines",
+        codeLines: [
+          { num: 1, text: `<span class="kw">using</span> System;` },
+          { num: 2, text: `<span class="kw">using</span> <span class="type">System.IO</span>;` },
+          { num: 3, text: `` },
+          { num: 4, text: `<span class="kw">class</span> <span class="type">Program</span>` },
+          { num: 5, text: `{` },
+          { num: 6, text: `    <span class="kw">static void</span> <span class="method">Main</span>()` },
+          { num: 7, text: `    {` },
+          { num: 8, text: `        <span class="comment">// Leggiamo tutte le righe del file voti.txt</span>` },
+          { num: 9, text: `        <span class="type">string</span>[] righe = <span class="type">File</span>.<slot></slot>(<span class="str">"voti.txt"</span>);` },
+          { num: 10, text: `        <span class="kw">foreach</span> (<span class="type">string</span> r <span class="kw">in</span> righe)` },
+          { num: 11, text: `            <span class="type">Console</span>.<span class="method">WriteLine</span>(<span class="str">"Voto: "</span> + r);` },
+          { num: 12, text: `    }` },
+          { num: 13, text: `}` }
+        ],
+        expectedConsole: `Voto: 8\nVoto: 9\nVoto: 7\nTotale voti letti: 3`,
+        resultFileLine: "8 | 9 | 7 (Caricati nella RAM)"
+      },
+      {
+        id: 4,
+        title: "Aggiungere senza cancellare (Append)",
+        category: "Classe File",
+        analogy: "Il diario scolastico: quando aggiungi una nuova riga oggi non strappi i giorni scorsi, ma scrivi a fondo pagina. In C# questo si chiama Append.",
+        fileName: "diario.txt",
+        hint: "Il metodo per accodare testo preservando i dati precedenti è File.AppendAllText.",
+        blankTarget: "AppendAllText",
+        codeLines: [
+          { num: 1, text: `<span class="kw">using</span> System;` },
+          { num: 2, text: `<span class="kw">using</span> <span class="type">System.IO</span>;` },
+          { num: 3, text: `` },
+          { num: 4, text: `<span class="kw">class</span> <span class="type">Program</span>` },
+          { num: 5, text: `{` },
+          { num: 6, text: `    <span class="kw">static void</span> <span class="method">Main</span>()` },
+          { num: 7, text: `    {` },
+          { num: 8, text: `        <span class="comment">// Aggiungi in fondo al diario senza sovrascrivere:</span>` },
+          { num: 9, text: `        <span class="type">File</span>.<slot></slot>(<span class="str">"diario.txt"</span>, <span class="str">"Oggi ho imparato Append\\n"</span>);` },
+          { num: 10, text: `        <span class="type">Console</span>.<span class="method">WriteLine</span>(<span class="str">"Nuova riga accodata al diario!"</span>);` },
+          { num: 11, text: `    }` },
+          { num: 12, text: `}` }
+        ],
+        expectedConsole: `Nuova riga accodata al diario!\nStorico precedente preservato al 100%.`,
+        resultFileLine: "Oggi ho imparato Append"
+      },
+      {
+        id: 5,
+        title: "Il file esiste? (Controllo preventivo)",
+        category: "Controlli & Sicurezza",
+        analogy: "Prima di cercare di aprire un quaderno, controlli se è nello zaino. Se provi ad aprire un file inesistente, il programma si blocca con un crash!",
+        fileName: "record.txt",
+        hint: "Il metodo booleano che verifica l'esistenza di un file è File.Exists.",
+        blankTarget: "Exists",
+        codeLines: [
+          { num: 1, text: `<span class="kw">using</span> System;` },
+          { num: 2, text: `<span class="kw">using</span> <span class="type">System.IO</span>;` },
+          { num: 3, text: `` },
+          { num: 4, text: `<span class="kw">class</span> <span class="type">Program</span>` },
+          { num: 5, text: `{` },
+          { num: 6, text: `    <span class="kw">static void</span> <span class="method">Main</span>()` },
+          { num: 7, text: `    {` },
+          { num: 8, text: `        <span class="comment">// Controlla prima di leggere per evitare errori:</span>` },
+          { num: 9, text: `        <span class="kw">if</span> (<span class="type">File</span>.<slot></slot>(<span class="str">"record.txt"</span>))` },
+          { num: 10, text: `            <span class="type">Console</span>.<span class="method">WriteLine</span>(<span class="str">"File trovato sul disco!"</span>);` },
+          { num: 11, text: `        <span class="kw">else</span>` },
+          { num: 12, text: `            <span class="type">Console</span>.<span class="method">WriteLine</span>(<span class="str">"File assente, prima partita!"</span>);` },
+          { num: 13, text: `    }` },
+          { num: 14, text: `}` }
+        ],
+        expectedConsole: `File trovato sul disco!\nVerifica superata senza eccezioni.`,
+        resultFileLine: "Record Attuale: 2500 Punti"
+      },
+      {
+        id: 6,
+        title: "Gli errori con try / catch",
+        category: "Gestione Eccezioni",
+        analogy: "L'airbag in auto: se accade un imprevisto (es. pendrive rimossa), try/catch protegge il programma e impedisce che esploda con schermata d'errore.",
+        fileName: "dati.txt",
+        hint: "Il blocco che cattura l'eccezione se qualcosa va storto nel blocco try è catch.",
+        blankTarget: "catch",
+        codeLines: [
+          { num: 1, text: `<span class="kw">using</span> System;` },
+          { num: 2, text: `<span class="kw">using</span> <span class="type">System.IO</span>;` },
+          { num: 3, text: `` },
+          { num: 4, text: `<span class="kw">class</span> <span class="type">Program</span>` },
+          { num: 5, text: `{` },
+          { num: 6, text: `    <span class="kw">static void</span> <span class="method">Main</span>()` },
+          { num: 7, text: `    {` },
+          { num: 8, text: `        <span class="kw">try</span>` },
+          { num: 9, text: `        {` },
+          { num: 10, text: `            <span class="type">string</span> txt = <span class="type">File</span>.<span class="method">ReadAllText</span>(<span class="str">"inesistente.txt"</span>);` },
+          { num: 11, text: `        }` },
+          { num: 12, text: `        <slot></slot> (<span class="type">FileNotFoundException</span> ex)` },
+          { num: 13, text: `        {` },
+          { num: 14, text: `            <span class="type">Console</span>.<span class="method">WriteLine</span>(<span class="str">"File non trovato, ma programma salvo!"</span>);` },
+          { num: 15, text: `        }` },
+          { num: 16, text: `    }` },
+          { num: 17, text: `}` }
+        ],
+        expectedConsole: `File non trovato, ma programma salvo!\n[Airbag Attivo]: Nessun crash bloccante.`,
+        resultFileLine: "[Protezione Eccezione: FileNotFoundException gestita]"
+      },
+      {
+        id: 7,
+        title: "StreamWriter & StreamReader (using)",
+        category: "Flussi di Dati",
+        analogy: "La penna a sfera a getto continuo. L'istruzione using è il promemoria d'oro: quando hai finito di scrivere, richiudi sempre il tappo della penna e il quaderno!",
+        fileName: "stream.txt",
+        hint: "L'istruzione che garantisce la chiusura automatica del file alla fine del blocco è using.",
+        blankTarget: "using",
+        codeLines: [
+          { num: 1, text: `<span class="kw">using</span> System;` },
+          { num: 2, text: `<span class="kw">using</span> <span class="type">System.IO</span>;` },
+          { num: 3, text: `` },
+          { num: 4, text: `<span class="kw">class</span> <span class="type">Program</span>` },
+          { num: 5, text: `{` },
+          { num: 6, text: `    <span class="kw">static void</span> <span class="method">Main</span>()` },
+          { num: 7, text: `    {` },
+          { num: 8, text: `        <span class="comment">// Chiude e svuota il buffer su disco automaticamente:</span>` },
+          { num: 9, text: `        <slot></slot> (<span class="type">StreamWriter</span> sw = <span class="kw">new</span> <span class="type">StreamWriter</span>(<span class="str">"stream.txt"</span>))` },
+          { num: 10, text: `        {` },
+          { num: 11, text: `            sw.<span class="method">WriteLine</span>(<span class="str">"Riga scritta con flusso continuo"</span>);` },
+          { num: 12, text: `        }` },
+          { num: 13, text: `        <span class="type">Console</span>.<span class="method">WriteLine</span>(<span class="str">"Flusso chiuso regolarmente."</span>);` },
+          { num: 14, text: `    }` },
+          { num: 15, text: `}` }
+        ],
+        expectedConsole: `Flusso chiuso regolarmente.\nBuffer scaricato sul disco. File rilasciato.`,
+        resultFileLine: "Riga scritta con flusso continuo"
+      },
+      {
+        id: 8,
+        title: "Dati strutturati (CSV e Split)",
+        category: "Tabelle & CSV",
+        analogy: "Il quaderno a quadretti diviso in colonne con il righello. Nel file CSV le colonne sono separate dal punto e virgola ';' e in C# le dividiamo con Split.",
+        fileName: "studenti.csv",
+        hint: "Il metodo delle stringhe che spezza la riga in base a un carattere delimitatore è Split.",
+        blankTarget: "Split",
+        codeLines: [
+          { num: 1, text: `<span class="kw">using</span> System;` },
+          { num: 2, text: `<span class="kw">using</span> <span class="type">System.IO</span>;` },
+          { num: 3, text: `` },
+          { num: 4, text: `<span class="kw">class</span> <span class="type">Program</span>` },
+          { num: 5, text: `{` },
+          { num: 6, text: `    <span class="kw">static void</span> <span class="method">Main</span>()` },
+          { num: 7, text: `    {` },
+          { num: 8, text: `        <span class="type">string</span> riga = <span class="str">"Mario Rossi;Informatica;9.5"</span>;` },
+          { num: 9, text: `        <span class="comment">// Spezza la riga alle posizioni del punto e virgola:</span>` },
+          { num: 10, text: `        <span class="type">string</span>[] campi = riga.<slot></slot>(<span class="num">';'</span>);` },
+          { num: 11, text: `        <span class="type">Console</span>.<span class="method">WriteLine</span>(<span class="str">$"Studente: {campi[0]} | Voto: {campi[2]}"</span>);` },
+          { num: 12, text: `    }` },
+          { num: 13, text: `}` }
+        ],
+        expectedConsole: `Studente: Mario Rossi | Voto: 9.5\nColonne CSV estratte correttamente.`,
+        resultFileLine: "Mario Rossi;Informatica;9.5"
+      },
+      {
+        id: 9,
+        title: "Mini progetto finale (Registro di Classe)",
+        category: "Progetto Completo",
+        analogy: "Il grande Registro Ufficiale di Classe: combina menu interattivo, append per i nuovi studenti, controllo di esistenza e parsing CSV.",
+        fileName: "registro.csv",
+        hint: "Nel menu principale con do-while controlliamo la condizione di uscita while (scelta != '0').",
+        blankTarget: "while",
+        codeLines: [
+          { num: 1, text: `<span class="kw">using</span> System;` },
+          { num: 2, text: `<span class="kw">using</span> <span class="type">System.IO</span>;` },
+          { num: 3, text: `` },
+          { num: 4, text: `<span class="kw">class</span> <span class="type">Program</span>` },
+          { num: 5, text: `{` },
+          { num: 6, text: `    <span class="kw">static void</span> <span class="method">Main</span>()` },
+          { num: 7, text: `    {` },
+          { num: 8, text: `        <span class="type">string</span> scelta = <span class="str">""</span>;` },
+          { num: 9, text: `        <span class="kw">do</span> {` },
+          { num: 10, text: `            <span class="type">Console</span>.<span class="method">WriteLine</span>(<span class="str">"1. Mostra Registro | 0. Esci"</span>);` },
+          { num: 11, text: `            scelta = <span class="str">"0"</span>;` },
+          { num: 12, text: `        } <slot></slot> (scelta != <span class="str">"0"</span>);` },
+          { num: 13, text: `        <span class="type">Console</span>.<span class="method">WriteLine</span>(<span class="str">"Registro salvato sul disco. Arrivederci!"</span>);` },
+          { num: 14, text: `    }` },
+          { num: 15, text: `}` }
+        ],
+        expectedConsole: `1. Mostra Registro | 0. Esci\nRegistro salvato sul disco. Arrivederci!\n[PROGETTO COMPLETATO CON SUCCESSO]`,
+        resultFileLine: "Nome;Materia;Voto\nMario Rossi;Informatica;9.5\nAnna Bianchi;Sistemi;8.0"
+      }
+    ];
+
+    // Stato dell'applicazione
+    let currentLessonIndex = 0;
+    let completedLessons = new Set([0]); // La prima è sbloccata
+    let notebookHistory = {};
+
+    // Elementi DOM
+    const tappeListEl = document.getElementById("tappeList");
+    const lessonTitleEl = document.getElementById("lessonTitle");
+    const lessonTagEl = document.getElementById("lessonTag");
+    const lessonCategoryEl = document.getElementById("lessonCategory");
+    const lessonAnalogyEl = document.getElementById("lessonAnalogy");
+    const codeWindowEl = document.getElementById("codeWindow");
+    const editorFilenameEl = document.getElementById("editorFilename");
+    const activeFileTagEl = document.getElementById("activeFileTag");
+    const notebookSheetEl = document.getElementById("notebookSheet");
+    const terminalSheetEl = document.getElementById("terminalSheet");
+    const btnVerify = document.getElementById("btnVerify");
+    const btnNext = document.getElementById("btnNext");
+    const btnHint = document.getElementById("btnHint");
+    const hintDrawer = document.getElementById("hintDrawer");
+    const hintTextEl = document.getElementById("hintText");
+    const progressBar = document.getElementById("progressBar");
+    const progressText = document.getElementById("progressText");
+    const levelBadge = document.getElementById("levelBadge");
+    const btnResetAll = document.getElementById("btnResetAll");
+    const btnToggleTheme = document.getElementById("btnToggleTheme");
+    const themeIcon = document.getElementById("themeIcon");
+    const congratsModal = document.getElementById("congratsModal");
+    const btnRestartCourse = document.getElementById("btnRestartCourse");
+
+    // Inizializzazione Tema (Dark di default)
+    function initTheme() {
+      const savedTheme = localStorage.getItem("cs_theme") || "dark";
+      document.documentElement.setAttribute("data-theme", savedTheme);
+      updateThemeIcon(savedTheme);
+    }
+
+    function toggleTheme() {
+      const current = document.documentElement.getAttribute("data-theme") || "dark";
+      const next = current === "dark" ? "light" : "dark";
+      document.documentElement.setAttribute("data-theme", next);
+      localStorage.setItem("cs_theme", next);
+      updateThemeIcon(next);
+    }
+
+    function updateThemeIcon(theme) {
+      if (theme === "light") {
+        // Icona Luna
+        themeIcon.innerHTML = `<path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/>`;
+      } else {
+        // Icona Sole
+        themeIcon.innerHTML = `<circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="m17.66 17.66 1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="m6.34 17.66-1.41 1.41"/><path d="m19.07 4.93-1.41 1.41"/>`;
+      }
+    }
+
+    // Renderizza la mappa delle tappe nella sidebar
+    function renderTappeList() {
+      tappeListEl.innerHTML = "";
+      LESSONS.forEach((lesson, idx) => {
+        const li = document.createElement("li");
+        const isCurrent = idx === currentLessonIndex;
+        const isCompleted = completedLessons.has(idx);
+
+        li.className = `tappa-item ${isCurrent ? 'active' : ''} ${isCompleted ? 'completed' : ''}`;
+        li.innerHTML = `
+          <div class="tappa-num">${isCompleted && !isCurrent ? '✓' : idx + 1}</div>
+          <span class="tappa-text">${lesson.title}</span>
+          <span class="tappa-badge">${isCompleted ? 'Fatta' : idx === currentLessonIndex ? 'In corso' : 'Tappa'}</span>
+        `;
+        li.addEventListener("click", () => {
+          switchLesson(idx);
+        });
+        tappeListEl.appendChild(li);
+      });
+
+      // Aggiorna indicatori di progresso generali
+      const count = completedLessons.size;
+      const pct = Math.round((count / LESSONS.length) * 100);
+      progressBar.style.width = `${pct}%`;
+      progressText.textContent = `${count} / ${LESSONS.length} completate`;
+      levelBadge.textContent = `Livello ${currentLessonIndex + 1}`;
+    }
+
+    // Renderizza la lezione attiva
+    function renderCurrentLesson() {
+      const lesson = LESSONS[currentLessonIndex];
+
+      lessonTitleEl.textContent = `${lesson.id}. ${lesson.title}`;
+      lessonTagEl.textContent = `Tappa ${lesson.id} di ${LESSONS.length}`;
+      lessonCategoryEl.textContent = lesson.category;
+      lessonAnalogyEl.textContent = lesson.analogy;
+      editorFilenameEl.textContent = "Program.cs";
+      activeFileTagEl.textContent = lesson.fileName;
+      hintTextEl.textContent = lesson.hint;
+
+      // Chiudi suggerimento e nascondi pulsante "Prossimo"
+      hintDrawer.classList.remove("open");
+      btnNext.style.display = "none";
+      btnVerify.style.display = "inline-flex";
+
+      // Renderizza codice sorgente con lo slot per l'input interattivo
+      codeWindowEl.innerHTML = "";
+      lesson.codeLines.forEach((line) => {
+        const lineEl = document.createElement("div");
+        lineEl.className = "code-line";
+
+        let content = line.text;
+        if (content.includes("<slot></slot>")) {
+          content = content.replace(
+            "<slot></slot>",
+            `<input id="codeBlankInput" class="code-blank" placeholder="..." autocomplete="off" spellcheck="false" autofocus />`
+          );
+        }
+
+        lineEl.innerHTML = `
+          <span class="line-number">${line.num}</span>
+          <span class="line-text">${content}</span>
+        `;
+        codeWindowEl.appendChild(lineEl);
+      });
+
+      // Event listener sul tasto Invio nell'input
+      const inputEl = document.getElementById("codeBlankInput");
+      if (inputEl) {
+        inputEl.addEventListener("keydown", (e) => {
+          if (e.key === "Enter") {
+            handleVerify();
+          }
+        });
+      }
+
+      // Renderizza contenuto attuale del file nel quaderno
+      renderNotebookPreview();
+
+      // Messaggio iniziale console
+      terminalSheetEl.innerHTML = `
+        <div class="term-line term-prompt">> dotnet run [Lezione ${lesson.id}]</div>
+        <div class="term-line" style="color: var(--color-text-muted);">Pronto. Completa l'istruzione mancante e clicca su Verifica.</div>
+      `;
+    }
+
+    // Cambia tappa attiva
+    function switchLesson(newIndex) {
+      currentLessonIndex = newIndex;
+      renderTappeList();
+      renderCurrentLesson();
+    }
+
+    // Renderizza il quaderno / file
+    function renderNotebookPreview(newHighlightText = null) {
+      const lesson = LESSONS[currentLessonIndex];
+      const history = notebookHistory[lesson.fileName] || [];
+
+      notebookSheetEl.innerHTML = "";
+
+      if (history.length === 0 && !newHighlightText) {
+        notebookSheetEl.innerHTML = `
+          <div class="file-line">
+            <span class="line-idx">1</span>
+            <span style="color: var(--color-text-muted); font-style: italic;">(File '${lesson.fileName}' non ancora creato sul disco)</span>
+          </div>
+        `;
+        return;
+      }
+
+      history.forEach((text, i) => {
+        const row = document.createElement("div");
+        row.className = "file-line";
+        row.innerHTML = `
+          <span class="line-idx">${i + 1}</span>
+          <span>${escapeHtml(text)}</span>
+        `;
+        notebookSheetEl.appendChild(row);
+      });
+
+      if (newHighlightText) {
+        const row = document.createElement("div");
+        row.className = "file-line highlight-new";
+        row.innerHTML = `
+          <span class="line-idx">${history.length + 1}</span>
+          <span>${escapeHtml(newHighlightText)}</span>
+        `;
+        notebookSheetEl.appendChild(row);
+      }
+    }
+
+    // Verifica la risposta dello studente
+    function handleVerify() {
+      const inputEl = document.getElementById("codeBlankInput");
+      if (!inputEl) return;
+
+      const userVal = inputEl.value.trim();
+      const lesson = LESSONS[currentLessonIndex];
+
+      // Confronto case-insensitive o pulito
+      const isCorrect = userVal.toLowerCase() === lesson.blankTarget.toLowerCase();
+
+      if (isCorrect) {
+        // SUCCESSO! Momento memorabile: animazione verde ed effetto scrittura sul quaderno
+        inputEl.classList.remove("wrong");
+        inputEl.classList.add("correct");
+
+        // Aggiorna lo storico del file per il quaderno
+        if (!notebookHistory[lesson.fileName]) {
+          notebookHistory[lesson.fileName] = [];
+        }
+        if (lesson.id === 2 || lesson.id === 1) {
+          // Sovrascrittura: svuota prima
+          notebookHistory[lesson.fileName] = [lesson.resultFileLine];
+        } else {
+          // Aggiungi in coda
+          notebookHistory[lesson.fileName].push(lesson.resultFileLine);
+        }
+
+        // Renderizza con highlight soddisfacente
+        renderNotebookPreview();
+
+        // Output realistico nel terminale
+        terminalSheetEl.innerHTML = `
+          <div class="term-line term-prompt">> dotnet run</div>
+          <div class="term-line term-success">Compilazione riuscita (0 avvisi, 0 errori).</div>
+          <div class="term-line">${escapeHtml(lesson.expectedConsole).replace(/\\n/g, '<br/>')}</div>
+          <div class="term-line term-success">[OK] Istruzione '${lesson.blankTarget}' verificata con successo!</div>
+        `;
+
+        // Segna come completata e aggiorna le tappe
+        completedLessons.add(currentLessonIndex);
+        renderTappeList();
+
+        // Mostra il pulsante per avanzare alla prossima tappa
+        btnVerify.style.display = "none";
+        btnNext.style.display = "inline-flex";
+
+        // Se è l'ultima lezione, apri la schermata finale!
+        if (currentLessonIndex === LESSONS.length - 1 && completedLessons.size === LESSONS.length) {
+          setTimeout(() => {
+            congratsModal.classList.add("show");
+          }, 800);
+        }
+      } else {
+        // Errore: feedback visivo immediato senza bloccare
+        inputEl.classList.remove("correct");
+        inputEl.classList.add("wrong");
+
+        terminalSheetEl.innerHTML = `
+          <div class="term-line term-prompt">> dotnet run</div>
+          <div class="term-line term-error">Errore CS0103: Il nome '${escapeHtml(userVal || "vuoto")}' non esiste nel contesto corrente.</div>
+          <div class="term-line term-warn">Suggerimento del prof: Controlla la sintassi o apri il pulsante 'Suggerimento'.</div>
+        `;
+      }
+    }
+
+    // Avanza alla prossima lezione
+    function handleNextLesson() {
+      if (currentLessonIndex < LESSONS.length - 1) {
+        switchLesson(currentLessonIndex + 1);
+      } else {
+        // Già alla fine
+        congratsModal.classList.add("show");
+      }
+    }
+
+    // Toggle cassetto suggerimento
+    function toggleHint() {
+      hintDrawer.classList.toggle("open");
+    }
+
+    // Reset completo del corso
+    function handleResetAll() {
+      if (confirm("Vuoi ricominciare il laboratorio di C# dalla prima tappa?")) {
+        completedLessons = new Set([0]);
+        notebookHistory = {};
+        congratsModal.classList.remove("show");
+        switchLesson(0);
+      }
+    }
+
+    // Utility di escape
+    function escapeHtml(str) {
+      return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;');
+    }
+
+    // Event Listeners
+    btnVerify.addEventListener("click", handleVerify);
+    btnNext.addEventListener("click", handleNextLesson);
+    btnHint.addEventListener("click", toggleHint);
+    btnResetAll.addEventListener("click", handleResetAll);
+    btnToggleTheme.addEventListener("click", toggleTheme);
+    btnRestartCourse.addEventListener("click", handleResetAll);
+
+    // Avvio
+    initTheme();
+    renderTappeList();
+    renderCurrentLesson();
+  </script>
+</body>
+</html>
