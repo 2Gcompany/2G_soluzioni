@@ -1,0 +1,16 @@
+{
+  "name": "sito",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "predev": "node scripts/copy-lessons.mjs",
+    "dev": "astro dev",
+    "prebuild": "node scripts/copy-lessons.mjs",
+    "build": "astro build",
+    "preview": "astro preview",
+    "test": "node --test"
+  },
+  "dependencies": {
+    "astro": "^7.4.13"
+  }
+}

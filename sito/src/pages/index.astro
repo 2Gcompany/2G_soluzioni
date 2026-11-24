@@ -1,0 +1,28 @@
+---
+import path from 'node:path';
+import { findLessons } from '../../lib/lessons.mjs';
+
+// astro build runs from sito/; import.meta.url points inside dist/ once bundled.
+const lessons = findLessons(path.resolve(process.cwd(), '../lezioni'));
+const base = import.meta.env.BASE_URL.replace(/\/$/, '');
+---
+<!doctype html>
+<html lang="it">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Lezioni 2G Soluzioni</title>
+    <style>
+      body { font-family: system-ui, sans-serif; max-width: 40rem; margin: 2rem auto; padding: 0 1rem; line-height: 1.5; }
+      li { margin: 0.5rem 0; }
+    </style>
+  </head>
+  <body>
+    <h1>Lezioni 2G Soluzioni</h1>
+    <ul>
+      {lessons.map((lesson) => (
+        <li><a href={`${base}/lezioni/${lesson.path}/`}>{lesson.title}</a></li>
+      ))}
+    </ul>
+  </body>
+</html>

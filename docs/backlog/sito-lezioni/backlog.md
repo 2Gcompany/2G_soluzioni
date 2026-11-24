@@ -9,7 +9,7 @@ Order is dependency order. A slice with no "Blocked by" can start in parallel.
 ## S1 · Anyone opens the class website and reaches every HTML lesson
 **In brief:** A public website on GitHub Pages lists the class lessons by title; clicking one opens the lesson as it is today. It is rebuilt and republished automatically every time something changes on `main`.
 **Why:** proves the riskiest assumption end-to-end: Astro build under the sub-path, lessons copied with their assets, deploy through an Action.
-**Size:** M
+**Size:** M · **Status:** done
 **Blocked by:** –
 **ADRs:** 0001
 
