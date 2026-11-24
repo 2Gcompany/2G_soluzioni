@@ -8,4 +8,4 @@ Documentazione e appunti del progetto «Braccio robotico».
 - [Guida alla simulazione](Guida-simulazione.md)
 - [Esercizi e risorse](Esercizi-e-risorse.md)
 
-Il progetto è in `progetti/braccio-robotico`, la lezione in `lezioni/braccio-robotico`.
+Il progetto e la lezione sono in `lezioni/braccio-robotico`.

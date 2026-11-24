@@ -21,7 +21,7 @@ Il file è **eseguibile universalmente**: non richiede installazioni, server o c
 
 ## ▶️ Come usarlo
 
-1. Scarica il file `index.html` dalla cartella `progetti/yugioh/`
+1. Scarica il file `index.html` dalla cartella `lezioni/yugioh/`
 2. Fai doppio clic sul file
 3. Si apre nel browser e puoi consultare la guida
 
@@ -149,7 +149,7 @@ Sono due formati **non ufficiali** creati dalla community, che usano le carte e 
 ## 📁 Struttura del progetto
 
 ```
-progetti/
+lezioni/
 └── yugioh/
     ├── index.html      → la guida (file eseguibile nel browser)
     ├── README.md       → questo file
