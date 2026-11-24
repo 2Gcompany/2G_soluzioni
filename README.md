@@ -1,15 +1,23 @@
-<div align="center">
-<img width="1200" height="475" alt="GHBanner" src="https://ai.google.dev/static/site-assets/images/share-ais-513315318.png" />
-</div>
+# 2G Soluzioni
 
-# Run and deploy your AI Studio app
+Repository della mini startup della classe 5E dell'ITIS Galileo Galilei.
 
-This contains everything you need to run your app locally.
+## Struttura
 
-View your app in AI Studio: https://ai.studio/apps/9ecfcd52-1067-4046-8b7b-03a8e1ca1f5d
+- `lezioni/` – materiale delle lezioni
+- `progetti/` – i progetti della startup, uno per cartella
+- `wiki/` – documentazione e appunti condivisi
 
-## Run Locally
+## Progetti
 
 - [Backup Foto (rsync-ui)](progetti/rsync-ui/README.md) – interfaccia semplice per copiare le foto
   da scheda SD o fotocamera a un disco di backup; prototipo cliccabile.
+
+- [Stampa 3D (Layer Lab)](progetti/stampa-3d/README.md) – sito interattivo che spiega
+  la stampa 3D agli studenti di quarta: undici strati, simulatori di G-code e slicer, quiz finale.
+
 - [Braccio robotico](progetti/braccio-robotico/README.md) – simulazione di un braccio a tre giunti con pinza e comandi seriali per Arduino.
+
+## Strumenti
+
+- [Opencode](installazione_opencode/README.md) – guida all'installazione del tool opencode nel terminale del Codespace.
