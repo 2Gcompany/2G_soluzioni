@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="Guida interattiva a Git: concetti, comandi, GitHub e flusso di lavoro.">
+<title>Git — Guida interattiva</title>
+<style>
+:root{--bg:#111315;--panel:#1a1e22;--panel2:#20262c;--text:#e8edf2;--muted:#aab4bf;--line:#303941;--green:#8bd5a7;--blue:#8dbdff;--yellow:#f4d58d;--red:#ff9c9c}
+*{box-sizing:border-box}html{scroll-behavior:smooth}body{margin:0;background:radial-gradient(ellipse at top,#20262b 0,#111315 55%);color:var(--text);font:16px/1.65 system-ui,-apple-system,Segoe UI,Roboto,sans-serif}
+header{padding:58px 22px 38px;text-align:center;border-bottom:1px solid var(--line)}header .eyebrow{color:var(--green);font-weight:700;letter-spacing:.14em;text-transform:uppercase;font-size:.78rem}h1{font-size:clamp(2.4rem,7vw,4.7rem);line-height:1.05;margin:12px 0}header p{max-width:760px;margin:15px auto;color:var(--muted);font-size:1.08rem}
+nav{position:sticky;top:0;z-index:10;background:#141719ed;backdrop-filter:blur(12px);border-bottom:1px solid var(--line);display:flex;gap:8px;overflow-x:auto;padding:10px max(16px,calc((100% - 1100px)/2))}
+nav a{white-space:nowrap;color:var(--muted);text-decoration:none;padding:8px 12px;border-radius:9px;font-size:.9rem}nav a:hover{background:var(--panel2);color:var(--text)}
+main{max-width:1100px;margin:auto;padding:30px 20px 80px}.intro{background:linear-gradient(135deg,#1b2823,#1b222a);border:1px solid #345044;border-radius:18px;padding:22px;margin-bottom:28px}
+h2{font-size:1.75rem;margin:38px 0 14px}h3{margin:0 0 8px;font-size:1.12rem}.muted{color:var(--muted)}.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,270px),1fr));gap:14px}.card{background:var(--panel);border:1px solid var(--line);border-radius:15px;padding:19px;min-width:0}.card p{margin:7px 0;color:var(--muted)}.tag{display:inline-block;font-size:.75rem;color:var(--green);background:#20352a;padding:3px 9px;border-radius:99px;margin-bottom:9px}
+code,pre{font-family:ui-monospace,SFMono-Regular,Consolas,monospace}code{color:#b8d6ff;background:#101519;padding:2px 5px;border-radius:5px}pre{white-space:pre-wrap;overflow-wrap:anywhere;background:#0d1114;border:1px solid var(--line);border-radius:10px;padding:14px;color:#c8e0ff;margin:12px 0}
+button,.button{border:1px solid #45614f;background:#24392c;color:#dff8e7;border-radius:9px;padding:9px 13px;font:inherit;cursor:pointer}button:hover,.button:hover{background:#2c4937}button.secondary{background:#252c33;border-color:var(--line);color:var(--text)}
+details{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:0 15px;margin:10px 0}summary{cursor:pointer;padding:14px 0;font-weight:650}details .inside{padding:0 0 15px;color:var(--muted)}details[open]{border-color:#52685a}
+.steps{counter-reset:step;display:grid;gap:12px}.step{display:grid;grid-template-columns:42px 1fr;gap:13px;align-items:start;background:var(--panel);border:1px solid var(--line);border-radius:13px;padding:16px}.step:before{counter-increment:step;content:counter(step);width:34px;height:34px;display:grid;place-items:center;background:#263c2e;color:var(--green);border-radius:50%;font-weight:800}
+table{width:100%;border-collapse:collapse;background:var(--panel);border-radius:12px;overflow:hidden}th,td{text-align:left;padding:12px;border-bottom:1px solid var(--line);vertical-align:top}th{background:#222930;color:var(--green)}td{color:var(--muted)}
+.demo{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:20px}.file{display:flex;justify-content:space-between;gap:12px;align-items:center;border-bottom:1px solid var(--line);padding:11px 0}.file:last-child{border:0}.status{font-size:.78rem;border-radius:99px;padding:3px 8px;background:#303941;color:#dce4ec}.status.changed{background:#493b22;color:var(--yellow)}.status.staged{background:#203d2b;color:var(--green)}.status.committed{background:#20364b;color:var(--blue)}
+.output{min-height:52px;color:var(--green);background:#0d1114;padding:12px;border-radius:9px;margin-top:12px;font-family:ui-monospace,monospace}
+.links a{color:var(--blue);overflow-wrap:anywhere}.links li{margin:9px 0;color:var(--muted)}.callout{border-left:3px solid var(--yellow);padding:10px 14px;background:#29261e;border-radius:0 9px 9px 0;color:#e9dfc8;margin:14px 0}
+footer{text-align:center;color:var(--muted);padding:28px;border-top:1px solid var(--line)}
+@media(max-width:600px){header{padding-top:40px}main{padding:20px 14px 55px}th,td{padding:9px;font-size:.9rem}}
+</style>
+</head>
+<body>
+<header>
+  <div class="eyebrow">Guida pratica e interattiva</div>
+  <h1>Git, passo dopo passo.</h1>
+  <p>Impara a tenere traccia delle modifiche al codice, salvare versioni del progetto e collaborare online con GitHub, GitLab o altri servizi.</p>
+</header>
+<nav>
+  <a href="#idee">Concetti</a><a href="#installazione">Installazione</a><a href="#primo">Primo progetto</a><a href="#comandi">Comandi</a><a href="#rami">Branch</a><a href="#online">Online</a><a href="#demo">Simulatore</a><a href="#errori">Problemi comuni</a>
+</nav>
+<main>
+<section class="intro">
+  <h2 style="margin-top:0">Prima di iniziare: Git non è GitHub</h2>
+  <p><strong>Git</strong> è un programma che gira sul tuo computer e registra la storia dei file di un progetto. <strong>GitHub</strong> è un sito che può ospitare online i repository Git e aggiunge strumenti per collaborare. Puoi usare Git anche senza creare un account o collegarti a Internet.</p>
+</section>
+
+<section id="idee">
+<h2>1. I concetti fondamentali</h2>
+<div class="grid">
+ <article class="card"><span class="tag">Repository</span><h3>Il contenitore del progetto</h3><p>Un repository (o “repo”) contiene i file del progetto e la cronologia delle versioni registrate da Git.</p></article>
+ <article class="card"><span class="tag">Commit</span><h3>Una versione salvata</h3><p>Un commit è un punto nella cronologia. Contiene una fotografia delle modifiche selezionate, un messaggio e un identificativo.</p></article>
+ <article class="card"><span class="tag">Working directory</span><h3>La cartella di lavoro</h3><p>È la cartella in cui apri e modifichi i file. Le modifiche qui non sono ancora necessariamente incluse in un commit.</p></article>
+ <article class="card"><span class="tag">Staging area</span><h3>L'area di preparazione</h3><p>È il passaggio intermedio: scegli quali modifiche includere nel prossimo commit con <code>git add</code>.</p></article>
+ <article class="card"><span class="tag">Branch</span><h3>Una linea di sviluppo</h3><p>Un branch permette di lavorare su una funzionalità o un esperimento senza modificare subito il ramo principale.</p></article>
+ <article class="card"><span class="tag">Remote</span><h3>Il repository remoto</h3><p>È una copia del repository raggiungibile tramite rete, ad esempio su GitHub. Puoi inviare e ricevere commit.</p></article>
+</div>
+<details><summary>Che cosa succede quando faccio un commit?</summary><div class="inside">Git registra lo stato dei file che hai messo nell'area di staging. Non salva automaticamente ogni modifica che fai: prima controlli cosa è cambiato, poi selezioni i file con <code>git add</code> e infine crei il commit con <code>git commit</code>.</div></details>
+<details><summary>Git salva copie complete di tutti i file?</summary><div class="inside">Git è progettato per registrare la storia in modo efficiente, usando oggetti e riferimenti. Per imparare, è utile immaginare un commit come una fotografia del progetto, ma tecnicamente Git riutilizza i contenuti uguali.</div></details>
+</section>
+
+<section id="installazione">
+<h2>2. Installare gli strumenti</h2>
+<div class="grid">
+ <article class="card"><h3>Windows</h3><p>Scarica Git for Windows dal sito ufficiale. Include Git Bash, un terminale in cui puoi eseguire i comandi Git.</p><p><a href="https://git-scm.com/downloads" target="_blank" rel="noopener">Scarica Git</a></p></article>
+ <article class="card"><h3>macOS</h3><p>Puoi installare Git tramite gli strumenti da riga di comando di Xcode oppure con un gestore di pacchetti, come Homebrew.</p><pre>git --version</pre><p><a href="https://git-scm.com/downloads" target="_blank" rel="noopener">Istruzioni ufficiali</a></p></article>
+ <article class="card"><h3>Linux</h3><p>Usa il gestore pacchetti della tua distribuzione. Su Debian e Ubuntu, ad esempio:</p><pre>sudo apt update
+sudo apt install git</pre><p>Per altre distribuzioni, consulta la documentazione ufficiale.</p></article>
+</div>
+<p class="muted">Dopo l'installazione, apri il terminale (o Git Bash) e verifica:</p><pre>git --version</pre>
+<p>Se compare un numero di versione, Git è installato e il terminale lo trova.</p>
+</section>
+
+<section id="primo">
+<h2>3. Creare il primo repository</h2>
+<div class="steps">
+ <div class="step"><div><h3>Crea una cartella</h3><p>Per esempio, crea una cartella chiamata <code>mio-progetto</code> e aprila nel terminale.</p><pre>mkdir mio-progetto
+cd mio-progetto</pre></div></div>
+ <div class="step"><div><h3>Inizializza Git</h3><p>Questo comando crea la struttura nascosta <code>.git</code>, che contiene i dati del repository.</p><pre>git init</pre></div></div>
+ <div class="step"><div><h3>Crea un file</h3><p>Puoi creare <code>README.md</code> con un editor di testo e scrivere una breve descrizione del progetto.</p><pre># Il mio progetto
+La mia prima prova con Git.</pre></div></div>
+ <div class="step"><div><h3>Controlla lo stato</h3><p>Git ti mostra i file nuovi o modificati e quelli già preparati per il commit.</p><pre>git status</pre></div></div>
+ <div class="step"><div><h3>Prepara il file e crea un commit</h3><p><code>git add</code> prepara il file; <code>git commit</code> registra una versione nella cronologia.</p><pre>git add README.md
+git commit -m "Aggiunge il README"</pre></div></div>
+ <div class="step"><div><h3>Visualizza la cronologia</h3><pre>git log --oneline</pre><p>Vedrai il commit appena creato e il suo identificativo abbreviato.</p></div></div>
+</div>
+<div class="callout"><strong>Nota:</strong> la prima volta Git potrebbe chiederti di configurare nome ed email. Usa un nome e un indirizzo che desideri associare ai tuoi commit:</div>
+<pre>git config --global user.name "Nome Cognome"
+git config --global user.email "tu@email.com"</pre>
+<p class="muted">Queste impostazioni indicano l'autore dei commit; non creano un account online.</p>
+</section>
+
+<section id="comandi">
+<h2>4. I comandi più usati</h2>
+<table>
+<thead><tr><th>Comando</th><th>A cosa serve</th></tr></thead>
+<tbody>
+<tr><td><code>git status</code></td><td>Mostra lo stato dei file e dell'area di staging.</td></tr>
+<tr><td><code>git add nome-file</code></td><td>Prepara un file per il prossimo commit.</td></tr>
+<tr><td><code>git add .</code></td><td>Prepara le modifiche nella cartella corrente e nelle sue sottocartelle. Controlla prima cosa stai includendo.</td></tr>
+<tr><td><code>git diff</code></td><td>Mostra le modifiche non ancora messe in staging.</td></tr>
+<tr><td><code>git diff --staged</code></td><td>Mostra le modifiche già preparate per il commit.</td></tr>
+<tr><td><code>git commit -m "messaggio"</code></td><td>Crea un commit con un messaggio descrittivo.</td></tr>
+<tr><td><code>git log --oneline</code></td><td>Mostra la cronologia in forma compatta.</td></tr>
+<tr><td><code>git restore nome-file</code></td><td>Scarta le modifiche non preparate in quel file. Usalo con attenzione: non è un comando di annullamento reversibile.</td></tr>
+<tr><td><code>git rm nome-file</code></td><td>Rimuove un file dal progetto e prepara la rimozione per il commit.</td></tr>
+<tr><td><code>git clone URL</code></td><td>Scarica una copia di un repository remoto.</td></tr>
+<tr><td><code>git pull</code></td><td>Recupera e integra gli aggiornamenti dal remoto configurato.</td></tr>
+<tr><td><code>git push</code></td><td>Invia al remoto i commit locali che non sono ancora presenti lì.</td></tr>
+</tbody></table>
+<details><summary>Perché git add e git commit sono due passaggi distinti?</summary><div class="inside">Perché puoi scegliere con precisione quali modifiche mettere insieme in una versione. Ad esempio, se hai modificato tre file ma vuoi registrare solo i primi due, aggiungi quei due file e poi crea il commit.</div></details>
+<details><summary>Come scrivo un buon messaggio di commit?</summary><div class="inside">Descrivi in modo breve cosa cambia: <code>"Aggiunge pagina contatti"</code> è più utile di <code>"varie modifiche"</code>. Un commit dovrebbe rappresentare un cambiamento comprensibile.</div></details>
+</section>
+
+<section id="rami">
+<h2>5. Branch: lavorare senza rischiare il ramo principale</h2>
+<p>Un branch è una linea di sviluppo indipendente. Spesso il ramo principale si chiama <code>main</code>. Puoi creare un branch per una nuova funzionalità, fare commit lì e poi integrare il lavoro.</p>
+<pre>git branch                 # elenca i branch
+git switch -c nuova-funzione  # crea e passa al nuovo branch
+# modifica i file e crea uno o più commit
+git switch main            # torna al ramo principale
+git merge nuova-funzione   # integra il branch corrente in main</pre>
+<details><summary>Che cos'è un merge?</summary><div class="inside">Il merge integra la storia di un branch in quello su cui ti trovi. Se le modifiche non si contraddicono, Git può unirle automaticamente. Se due modifiche interferiscono nella stessa parte di un file, può chiederti di risolvere un conflitto.</div></details>
+<details><summary>Che cos'è un conflitto?</summary><div class="inside">È una situazione in cui Git non può decidere automaticamente quale modifica mantenere. Apri i file segnalati, scegli o combina le parti corrette, salva il risultato, poi usa <code>git add</code> e completa il merge con il commit richiesto da Git.</div></details>
+</section>
+
+<section id="online">
+<h2>6. Lavorare con GitHub e altri siti</h2>
+<p>Un servizio online ospita il repository remoto. Il flusso tipico è: crei un repository sul sito, colleghi la cartella locale al remoto e invii i commit.</p>
+<div class="grid links">
+ <article class="card"><h3>GitHub</h3><p>Hosting di repository, collaborazione, issue e pull request.</p><a href="https://github.com/" target="_blank" rel="noopener">github.com</a></article>
+ <article class="card"><h3>GitLab</h3><p>Repository Git, revisione del codice e strumenti CI/CD.</p><a href="https://gitlab.com/" target="_blank" rel="noopener">gitlab.com</a></article>
+ <article class="card"><h3>Bitbucket</h3><p>Repository Git e strumenti di collaborazione, spesso usati insieme ai prodotti Atlassian.</p><a href="https://bitbucket.org/" target="_blank" rel="noopener">bitbucket.org</a></article>
+ <article class="card"><h3>Visual Studio Code</h3><p>Editor con integrazione Git grafica: puoi vedere modifiche, preparare file e creare commit.</p><a href="https://code.visualstudio.com/" target="_blank" rel="noopener">code.visualstudio.com</a></article>
+</div>
+<h3 style="margin-top:22px">Collegare un repository locale a GitHub</h3>
+<ol>
+<li>Accedi a GitHub e crea un nuovo repository. Se hai già creato i file in locale, puoi creare il repository online senza aggiungere un README iniziale.</li>
+<li>Copia l'indirizzo HTTPS del repository dalla pagina GitHub.</li>
+<li>Nel terminale, dentro la cartella del progetto, esegui i comandi seguenti sostituendo l'indirizzo di esempio con il tuo:</li>
+</ol>
+<pre>git remote add origin https://github.com/tuo-utente/mio-progetto.git
+git branch -M main
+git push -u origin main</pre>
+<p><code>origin</code> è il nome convenzionale del remoto. <code>-u</code> imposta il collegamento di riferimento: nelle volte successive, spesso basta <code>git push</code>.</p>
+<details><summary>HTTPS o SSH: quale scelgo?</summary><div class="inside">Entrambi sono modi per autenticarti e comunicare con il servizio remoto. HTTPS è semplice da iniziare; SSH richiede la creazione e l'aggiunta di una chiave SSH al tuo account. Segui la guida ufficiale del servizio scelto e non condividere mai token o chiavi private.</div></details>
+<details><summary>Che cosa sono push, pull e fetch?</summary><div class="inside"><code>push</code> invia i tuoi commit al remoto. <code>fetch</code> scarica le informazioni aggiornate senza integrarle automaticamente nel branch corrente. <code>pull</code> esegue il recupero e poi integra gli aggiornamenti nel branch corrente.</div></details>
+</section>
+
+<section id="demo">
+<h2>7. Mini simulatore: modifica, staging e commit</h2>
+<p class="muted">Questa è una simulazione didattica nel browser: non modifica file reali e non esegue Git sul tuo computer. Prova a spostare i file tra gli stati.</p>
+<div class="demo">
+ <div id="files">
+  <div class="file" data-state="changed"><span>📄 index.html</span><span class="status changed">Modificato</span></div>
+  <div class="file" data-state="changed"><span>🎨 style.css</span><span class="status changed">Modificato</span></div>
+  <div class="file" data-state="clean"><span>📘 README.md</span><span class="status">Nessuna modifica</span></div>
+ </div>
+ <div style="display:flex;flex-wrap:wrap;gap:8px;margin-top:16px">
+  <button onclick="stage()">git add .</button>
+  <button onclick="commit()">git commit</button>
+  <button class="secondary" onclick="editAgain()">Modifica un file</button>
+  <button class="secondary" onclick="resetDemo()">Ricomincia</button>
+ </div>
+ <div class="output" id="demoOutput" aria-live="polite">Stato: hai modifiche non ancora preparate. Prova git add .</div>
+</div>
+</section>
+
+<section id="errori">
+<h2>8. Problemi comuni e buone abitudini</h2>
+<details><summary>“fatal: not a git repository”</summary><div class="inside">Il terminale non si trova dentro una cartella Git. Entra nella cartella del progetto con <code>cd nome-cartella</code> e controlla che sia stata inizializzata con <code>git init</code> o scaricata con <code>git clone</code>.</div></details>
+<details><summary>“Please tell me who you are”</summary><div class="inside">Configura autore e email con <code>git config --global user.name "Il tuo nome"</code> e <code>git config --global user.email "tu@email.com"</code>.</div></details>
+<details><summary>Il push viene rifiutato</summary><div class="inside">Il remoto potrebbe contenere commit che non hai ancora. Controlla il messaggio di errore, recupera gli aggiornamenti con <code>git pull</code> (eventualmente scegliendo la strategia richiesta dal progetto), risolvi eventuali conflitti e riprova. Non usare comandi forzati senza capire le conseguenze.</div></details>
+<details><summary>Ho aggiunto per sbaglio un file che non volevo nel commit</summary><div class="inside">Prima del commit puoi toglierlo dall'area di staging con <code>git restore --staged nome-file</code>. Il file resta nella cartella di lavoro; poi controlla con <code>git status</code>.</div></details>
+<div class="grid">
+ <article class="card"><h3>Fai commit piccoli</h3><p>Un commit dovrebbe contenere un cambiamento coerente e avere un messaggio chiaro.</p></article>
+ <article class="card"><h3>Controlla prima di salvare</h3><p>Usa <code>git status</code> e <code>git diff</code> prima di aggiungere e registrare modifiche.</p></article>
+ <article class="card"><h3>Non caricare segreti</h3><p>Non inserire password, token, chiavi private o file con dati personali nel repository. Usa un file <code>.gitignore</code> per escludere file locali.</p></article>
+</div>
+</section>
+
+<section>
+<h2>9. Percorso consigliato per imparare</h2>
+<ol>
+<li>Installa Git e verifica <code>git --version</code>.</li>
+<li>Crea un repository locale con <code>git init</code>.</li>
+<li>Prova più volte il ciclo <code>status → add → commit</code>.</li>
+<li>Crea un branch, fai una modifica e integralo con <code>merge</code>.</li>
+<li>Crea un repository online e prova <code>push</code>, <code>fetch</code> e <code>pull</code>.</li>
+<li>Impara a leggere i conflitti e a risolverli con calma.</li>
+</ol>
+<p>Documentazione ufficiale: <a href="https://git-scm.com/doc" target="_blank" rel="noopener">Git Documentation</a> · <a href="https://docs.github.com/" target="_blank" rel="noopener">GitHub Docs</a> · <a href="https://docs.gitlab.com/" target="_blank" rel="noopener">GitLab Docs</a>.</p>
+</section>
+</main>
+<footer>Guida didattica a Git · Puoi salvare questo file e aprirlo con qualsiasi browser moderno.</footer>
+<script>
+function updateFiles(states){
+ const rows=[...document.querySelectorAll('#files .file')];
+ rows.forEach((row,i)=>{const s=states[i];row.dataset.state=s;const badge=row.querySelector('.status');badge.className='status';if(s==='changed'){badge.classList.add('changed');badge.textContent='Modificato'}else if(s==='staged'){badge.classList.add('staged');badge.textContent='In staging'}else if(s==='committed'){badge.classList.add('committed');badge.textContent='Nel commit'}else badge.textContent='Nessuna modifica'});
+}
+function stage(){let states=[...document.querySelectorAll('#files .file')].map(x=>x.dataset.state);states=states.map(s=>s==='changed'?'staged':s);updateFiles(states);document.getElementById('demoOutput').textContent=states.includes('staged')?'Staging completato: i file modificati sono pronti per il prossimo commit.':'Non ci sono modifiche da preparare.'}
+function commit(){let states=[...document.querySelectorAll('#files .file')].map(x=>x.dataset.state);if(!states.includes('staged')){document.getElementById('demoOutput').textContent='Niente da registrare: prima esegui git add .';return}updateFiles(states.map(s=>s==='staged'?'committed':s));document.getElementById('demoOutput').textContent='Commit creato! Le modifiche preparate sono ora registrate nella cronologia simulata.'}
+function editAgain(){let states=[...document.querySelectorAll('#files .file')].map(x=>x.dataset.state);let i=states.findIndex(s=>s==='committed'||s==='clean');if(i<0)i=0;states[i]='changed';updateFiles(states);document.getElementById('demoOutput').textContent='Hai modificato un file: controlla lo stato, poi preparalo e crea un nuovo commit.'}
+function resetDemo(){updateFiles(['changed','changed','clean']);document.getElementById('demoOutput').textContent='Stato ripristinato: hai modifiche non ancora preparate. Prova git add .'}
+</script>
+</body>
+</html>
