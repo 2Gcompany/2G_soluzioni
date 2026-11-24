@@ -21,7 +21,7 @@ After S1 is merged, `https://2gcompany.github.io/2G_soluzioni/` lists all 5 HTML
 - Automatic discovery: every folder under `lezioni/` (any depth) containing an `index.html` is a lesson.
 - Lessons copied as static files into the site, keeping their path: `lezioni/matematica/derivate/` → `<site>/lezioni/matematica/derivate/`.
 - Development files excluded from the copy: `*.md`, `package.json`, `bun.lock`, `tsconfig.json`, `vite.config.ts`, `Dockerfile`, `compose.yaml`, `metadata.json`.
-- Workflow `.github/workflows/pages.yml`: deploy on push to `main` touching `lezioni/**`, `sito/**` or the workflow itself, plus manual run.
+- Workflow `.github/workflows/pages.yml`: deploy on every push (merge) to `main`, plus manual run.
 - Enabling GitHub Pages with source "GitHub Actions" on the repo.
 
 ## Out of scope / non-goals
