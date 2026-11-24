@@ -1,0 +1,1247 @@
+<!DOCTYPE html>
+<html lang="it" class="h-full bg-slate-50">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DerivaLab - Guida Interattiva alle Derivate</title>
+    
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            50: '#f0f3ff',
+                            100: '#e0e7ff',
+                            500: '#6366f1',
+                            600: '#4f46e5',
+                            700: '#4338ca',
+                        },
+                        func: '#3b82f6',     // Blu per f(x)
+                        deriv: '#f97316',    // Arancione/Corallo per f'(x)
+                        tangent: '#10b981',  // Verde per retta tangente
+                        secant: '#a855f7'    // Viola per retta secante
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'system-ui', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+
+    <!-- KaTeX CSS e JS per rendering matematico perfetto -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/contrib/auto-render.min.js"></script>
+
+    <style>
+        /* Personalizzazione scrollbar e KaTeX */
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: #f1f5f9; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+        
+        .katex-display { margin: 0.5em 0 !important; overflow-x: auto; overflow-y: hidden; padding: 4px 0; }
+        
+        .glass-card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(8px);
+            border: 1px solid rgba(226, 232, 240, 0.8);
+        }
+    </style>
+</head>
+<body class="h-full text-slate-800 font-sans flex flex-col antialiased selection:bg-indigo-500 selection:text-white">
+
+    <!-- HEADER / TOP NAV -->
+    <header class="bg-slate-900 text-white border-b border-slate-800 sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex items-center justify-between h-16">
+                <!-- Logo & Titolo -->
+                <div class="flex items-center space-x-3">
+                    <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-indigo-500 to-orange-500 flex items-center justify-center font-bold text-xl shadow-lg">
+                        f'
+                    </div>
+                    <div>
+                        <h1 class="font-bold text-lg leading-none tracking-tight">DerivaLab</h1>
+                        <p class="text-xs text-slate-400 mt-0.5">Guida Interattiva al Calcolo delle Derivate</p>
+                    </div>
+                </div>
+
+                <!-- Indicatore di progresso mobile/desktop -->
+                <div class="flex items-center space-x-2 text-xs sm:text-sm text-slate-300 bg-slate-800 px-3 py-1.5 rounded-full border border-slate-700">
+                    <span>Sezione</span>
+                    <span id="current-step-num" class="font-bold text-indigo-400">1</span>
+                    <span>di</span>
+                    <span class="font-bold">7</span>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- CORPO PRINCIPALE (SIDEBAR + CONTENUTO) -->
+    <div class="flex-1 flex flex-col md:flex-row max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 gap-6 overflow-hidden">
+        
+        <!-- SIDEBAR NAVIGAZIONE -->
+        <aside class="w-full md:w-72 flex-shrink-0">
+            <nav class="bg-white rounded-2xl p-3 shadow-sm border border-slate-200 flex md:flex-col overflow-x-auto md:overflow-x-visible gap-1.5 sticky top-20" id="sidebar-nav">
+                <!-- I pulsanti vengono popolati via JS o gestiti con data-target -->
+                <button onclick="navigateTo(0)" data-sec="0" class="nav-btn w-full text-left px-3.5 py-3 rounded-xl font-medium text-sm transition-all duration-200 flex items-center gap-3 bg-indigo-50 text-indigo-700 font-semibold shadow-sm border border-indigo-100">
+                    <span class="w-6 h-6 rounded-lg bg-indigo-600 text-white text-xs flex items-center justify-center font-bold flex-shrink-0">1</span>
+                    <span class="truncate">Cos'è la Derivata</span>
+                </button>
+                <button onclick="navigateTo(1)" data-sec="1" class="nav-btn w-full text-left px-3.5 py-3 rounded-xl font-medium text-sm text-slate-600 hover:bg-slate-100 hover:text-slate-900 transition-all duration-200 flex items-center gap-3">
+                    <span class="w-6 h-6 rounded-lg bg-slate-200 text-slate-700 text-xs flex items-center justify-center font-bold flex-shrink-0">2</span>
+                    <span class="truncate">Costanti e Lineari</span>
+                </button>
+                <button onclick="navigateTo(2)" data-sec="2" class="nav-btn w-full text-left px-3.5 py-3 rounded-xl font-medium text-sm text-slate-600 hover:bg-slate-100 hover:text-slate-900 transition-all duration-200 flex items-center gap-3">
+                    <span class="w-6 h-6 rounded-lg bg-slate-200 text-slate-700 text-xs flex items-center justify-center font-bold flex-shrink-0">3</span>
+                    <span class="truncate">Potenze & Radici</span>
+                </button>
+                <button onclick="navigateTo(3)" data-sec="3" class="nav-btn w-full text-left px-3.5 py-3 rounded-xl font-medium text-sm text-slate-600 hover:bg-slate-100 hover:text-slate-900 transition-all duration-200 flex items-center gap-3">
+                    <span class="w-6 h-6 rounded-lg bg-slate-200 text-slate-700 text-xs flex items-center justify-center font-bold flex-shrink-0">4</span>
+                    <span class="truncate">Esponenziali</span>
+                </button>
+                <button onclick="navigateTo(4)" data-sec="4" class="nav-btn w-full text-left px-3.5 py-3 rounded-xl font-medium text-sm text-slate-600 hover:bg-slate-100 hover:text-slate-900 transition-all duration-200 flex items-center gap-3">
+                    <span class="w-6 h-6 rounded-lg bg-slate-200 text-slate-700 text-xs flex items-center justify-center font-bold flex-shrink-0">5</span>
+                    <span class="truncate">Logaritmi</span>
+                </button>
+                <button onclick="navigateTo(5)" data-sec="5" class="nav-btn w-full text-left px-3.5 py-3 rounded-xl font-medium text-sm text-slate-600 hover:bg-slate-100 hover:text-slate-900 transition-all duration-200 flex items-center gap-3">
+                    <span class="w-6 h-6 rounded-lg bg-slate-200 text-slate-700 text-xs flex items-center justify-center font-bold flex-shrink-0">6</span>
+                    <span class="truncate">Goniometriche</span>
+                </button>
+                <button onclick="navigateTo(6)" data-sec="6" class="nav-btn w-full text-left px-3.5 py-3 rounded-xl font-medium text-sm text-slate-600 hover:bg-slate-100 hover:text-slate-900 transition-all duration-200 flex items-center gap-3">
+                    <span class="w-6 h-6 rounded-lg bg-slate-200 text-slate-700 text-xs flex items-center justify-center font-bold flex-shrink-0">7</span>
+                    <span class="truncate">Somma, Prodotto, Quoziente</span>
+                </button>
+            </nav>
+        </aside>
+
+        <!-- CONTENUTO PRINCIPALE DELLE SEZIONI -->
+        <main class="flex-1 bg-white rounded-2xl border border-slate-200 shadow-sm p-4 sm:p-6 lg:p-8 flex flex-col justify-between overflow-y-auto min-h-[650px]">
+            
+            <div id="sections-container">
+                
+                <!-- ==================== SEZIONE 1: DEFINIZIONE & INTUITO ==================== -->
+                <section id="section-0" class="section-content space-y-6">
+                    <div class="border-b border-slate-200 pb-4">
+                        <span class="text-xs font-semibold uppercase tracking-wider text-indigo-600 bg-indigo-50 px-2.5 py-1 rounded-md">Modulo Introduzione</span>
+                        <h2 class="text-2xl sm:text-3xl font-extrabold text-slate-900 mt-2">Cos'è la Derivata? Definizione e Intuito</h2>
+                        <p class="text-slate-600 mt-1">Scopri la derivata come il tasso di variazione istantaneo e la pendenza della retta tangente.</p>
+                    </div>
+
+                    <!-- Spiegazione Intuitiva -->
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                        <div class="space-y-4 text-slate-700 leading-relaxed">
+                            <p>
+                                Immagina di guidare un'automobile. Se percorri <strong>100 km in 1 ora</strong>, la tua <em>velocità media</em> è di 100 km/h. Ma durante quel viaggio sei stato fermo ai semafori a 0 km/h e poi hai toccato i 120 km/h in autostrada.
+                            </p>
+                            <p class="bg-indigo-50/70 border-l-4 border-indigo-500 p-4 rounded-r-xl text-slate-800">
+                                💡 <strong>La Derivata è la velocità istantanea:</strong> ci dice esattamente quanto sta cambiando una quantità in un singolo ed esatto istante di tempo ($h \to 0$).
+                            </p>
+                            
+                            <!-- Formula KaTeX -->
+                            <div class="bg-slate-900 text-white p-4 rounded-xl shadow-inner">
+                                <p class="text-xs text-indigo-300 font-semibold mb-1 uppercase tracking-wide">La Formula del Rapporto Incrementale</p>
+                                <div class="text-center text-lg sm:text-xl py-2">
+                                    $$f'(x_0) = \lim_{h \to 0} \frac{f(x_0 + h) - f(x_0)}{h}$$
+                                </div>
+                                <p class="text-xs text-slate-400 text-center">
+                                    Dove $\frac{f(x_0+h)-f(x_0)}{h}$ è la pendenza della retta secante. Quando la distanza $h$ tende a zero, la secante diventa la <strong>retta tangente</strong>.
+                                </p>
+                            </div>
+                        </div>
+
+                        <!-- Tre Esempi di Vita Quotidiana -->
+                        <div class="space-y-3">
+                            <h3 class="font-bold text-slate-900 text-base flex items-center gap-2">
+                                <span>🌍</span> Esempi concreti nella vita reale
+                            </h3>
+                            
+                            <div class="p-3.5 bg-slate-50 rounded-xl border border-slate-200 hover:border-indigo-300 transition-colors">
+                                <h4 class="font-semibold text-indigo-900 text-sm flex items-center gap-2">
+                                    🚗 Tachimetro dell'Automobile
+                                </h4>
+                                <p class="text-xs text-slate-600 mt-1">
+                                    La posizione dell'auto è la funzione $s(t)$. La <strong>derivata prima</strong> $s'(t) = v(t)$ è la velocità istantanea segnata dal tachimetro. La <strong>derivata seconda</strong> $v'(t) = a(t)$ è l'accelerazione che senti quando schiacci l'acceleratore.
+                                </p>
+                            </div>
+
+                            <div class="p-3.5 bg-slate-50 rounded-xl border border-slate-200 hover:border-amber-300 transition-colors">
+                                <h4 class="font-semibold text-amber-900 text-sm flex items-center gap-2">
+                                    ☕ Raffreddamento del Caffè
+                                </h4>
+                                <p class="text-xs text-slate-600 mt-1">
+                                    La temperatura $T(t)$ del caffè appena versato scende velocemente all'inizio, poi più lentamente. La derivata $T'(t)$ indica la <em>velocità di raffreddamento</em> (°C al minuto) in ogni preciso momento.
+                                </p>
+                            </div>
+
+                            <div class="p-3.5 bg-slate-50 rounded-xl border border-slate-200 hover:border-emerald-300 transition-colors">
+                                <h4 class="font-semibold text-emerald-900 text-sm flex items-center gap-2">
+                                    🚴 Pendenza della Strada in Bici
+                                </h4>
+                                <p class="text-xs text-slate-600 mt-1">
+                                    L'altitudine del terreno è $h(x)$. La derivata $h'(x)$ in un punto è la <strong>pendenza percentuale</strong> della strada: una derivata alta significa una salita ripidissima!
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- CANVAS INTERATTIVO: SECANTE -> TANGENTE -->
+                    <div class="mt-8 bg-slate-50 p-4 sm:p-6 rounded-2xl border border-slate-200">
+                        <div class="flex flex-col sm:flex-row justify-between sm:items-center mb-4 gap-2">
+                            <div>
+                                <h3 class="font-bold text-slate-900 text-lg">Laboratorio Visivo: Da Secante a Tangente su $f(x) = x^2$</h3>
+                                <p class="text-xs text-slate-500">Riduci $h$ verso 0 per vedere la retta secante trasformarsi nella retta tangente.</p>
+                            </div>
+                            <div class="flex items-center gap-3 text-xs">
+                                <span class="flex items-center gap-1 font-medium"><span class="w-3 h-3 rounded-full bg-blue-500 inline-block"></span> $f(x) = x^2$</span>
+                                <span class="flex items-center gap-1 font-medium"><span class="w-3 h-3 rounded-full bg-purple-500 inline-block"></span> Secante</span>
+                                <span class="flex items-center gap-1 font-medium"><span class="w-3 h-3 rounded-full bg-emerald-500 inline-block"></span> Tangente ($h=0$)</span>
+                            </div>
+                        </div>
+
+                        <!-- Canvas Box -->
+                        <div class="relative w-full h-[320px] bg-slate-900 rounded-xl overflow-hidden shadow-inner">
+                            <canvas id="canvas-secant" class="w-full h-full block"></canvas>
+                        </div>
+
+                        <!-- Controlli Slider -->
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-4 bg-white p-4 rounded-xl border border-slate-200">
+                            <div>
+                                <div class="flex justify-between text-xs font-semibold mb-1">
+                                    <label for="slider-x0" class="text-slate-700">Punto di contatto $x_0$:</label>
+                                    <span id="val-x0" class="text-indigo-600 font-mono">1.00</span>
+                                </div>
+                                <input type="range" id="slider-x0" min="-2" max="2" step="0.1" value="1" class="w-full accent-indigo-600">
+                            </div>
+                            <div>
+                                <div class="flex justify-between text-xs font-semibold mb-1">
+                                    <label for="slider-h" class="text-slate-700">Incremento $h$ (distanza secante):</label>
+                                    <span id="val-h" class="text-purple-600 font-mono">1.50</span>
+                                </div>
+                                <input type="range" id="slider-h" min="0.01" max="2.5" step="0.05" value="1.5" class="w-full accent-purple-600">
+                            </div>
+                        </div>
+
+                        <!-- Readout Risultati -->
+                        <div class="mt-3 flex flex-wrap items-center justify-between gap-2 text-xs bg-indigo-50/80 p-3 rounded-xl border border-indigo-100 font-mono">
+                            <div>Pendenza Secante $\frac{\Delta y}{\Delta x}$: <span id="readout-secant-slope" class="font-bold text-purple-700">--</span></div>
+                            <div>Pendenza Esatta Tangente $f'(x_0) = 2x_0$: <span id="readout-tangent-slope" class="font-bold text-emerald-700">--</span></div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- ==================== SEZIONE 2: COSTANTI & LINEARI ==================== -->
+                <section id="section-1" class="section-content space-y-6 hidden">
+                    <div class="border-b border-slate-200 pb-4">
+                        <span class="text-xs font-semibold uppercase tracking-wider text-indigo-600 bg-indigo-50 px-2.5 py-1 rounded-md">Regola 1</span>
+                        <h2 class="text-2xl sm:text-3xl font-extrabold text-slate-900 mt-2">Costanti e Funzioni Lineari</h2>
+                        <p class="text-slate-600 mt-1">Come derivare costanti, rette e moltiplicazioni per uno scalare.</p>
+                    </div>
+
+                    <!-- Carte Regole -->
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div class="p-4 bg-indigo-50/50 rounded-xl border border-indigo-100 space-y-2">
+                            <span class="text-xs font-bold text-indigo-600 uppercase">1. Costante pura</span>
+                            <div class="text-lg font-bold text-slate-900">$f(x) = c \implies f'(x) = 0$</div>
+                            <p class="text-xs text-slate-600">Una linea orizzontale non cambia mai: il suo tasso di variazione è zero.</p>
+                        </div>
+                        <div class="p-4 bg-indigo-50/50 rounded-xl border border-indigo-100 space-y-2">
+                            <span class="text-xs font-bold text-indigo-600 uppercase">2. Funzione Lineare</span>
+                            <div class="text-lg font-bold text-slate-900">$f(x) = mx + q \implies f'(x) = m$</div>
+                            <p class="text-xs text-slate-600">La derivata di una retta è il suo coefficiente angolare $m$ in ogni punto.</p>
+                        </div>
+                        <div class="p-4 bg-indigo-50/50 rounded-xl border border-indigo-100 space-y-2">
+                            <span class="text-xs font-bold text-indigo-600 uppercase">3. Costante per Funzione</span>
+                            <div class="text-lg font-bold text-slate-900">$[c \cdot f(x)]' = c \cdot f'(x)$</div>
+                            <p class="text-xs text-slate-600">La costante moltiplicativa "esce" dalla derivata mantenendosi inalterata.</p>
+                        </div>
+                    </div>
+
+                    <!-- Esempi Svolti Passo-Passo -->
+                    <div class="bg-slate-50 p-5 rounded-xl border border-slate-200 space-y-3">
+                        <h3 class="font-bold text-slate-900 text-sm uppercase tracking-wide">✏️ Esempi Svolti Passo-Passo</h3>
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs sm:text-sm">
+                            <div class="bg-white p-3.5 rounded-lg border border-slate-200">
+                                <p class="font-semibold text-slate-800">Esempio A: $g(x) = 7$</p>
+                                <p class="text-slate-600 mt-1">Trattandosi di una costante pura $c = 7$, la derivata è immediata:</p>
+                                <p class="font-bold text-indigo-600 mt-1">$g'(x) = 0$</p>
+                            </div>
+                            <div class="bg-white p-3.5 rounded-lg border border-slate-200">
+                                <p class="font-semibold text-slate-800">Esempio B: $h(x) = -4x + 9$</p>
+                                <p class="text-slate-600 mt-1">Applichiamo la regola delle rette $mx+q$ dove $m = -4$ e $q = 9$:</p>
+                                <p class="font-bold text-indigo-600 mt-1">$h'(x) = -4$</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Canvas Grafico Lineare -->
+                    <div class="bg-slate-50 p-4 sm:p-6 rounded-2xl border border-slate-200">
+                        <div class="flex justify-between items-center mb-4">
+                            <div>
+                                <h3 class="font-bold text-slate-900">Grafico Interattivo: $f(x) = mx + q$</h3>
+                                <p class="text-xs text-slate-500">Nota come la derivata (linea arancione) sia costante ed eguale a $m$.</p>
+                            </div>
+                        </div>
+                        <div class="relative w-full h-[280px] bg-slate-900 rounded-xl overflow-hidden shadow-inner">
+                            <canvas id="canvas-linear" class="w-full h-full block"></canvas>
+                        </div>
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-4 bg-white p-3.5 rounded-xl border border-slate-200 text-xs">
+                            <div>
+                                <label for="slider-m" class="font-semibold text-slate-700">Coefficiente angolare $m$:</label>
+                                <input type="range" id="slider-m" min="-4" max="4" step="0.5" value="2" class="w-full accent-indigo-600">
+                            </div>
+                            <div>
+                                <label for="slider-q" class="font-semibold text-slate-700">Intercetta $q$:</label>
+                                <input type="range" id="slider-q" min="-5" max="5" step="1" value="-1" class="w-full accent-indigo-600">
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- ==================== SEZIONE 3: POTENZE & RADICI ==================== -->
+                <section id="section-2" class="section-content space-y-6 hidden">
+                    <div class="border-b border-slate-200 pb-4">
+                        <span class="text-xs font-semibold uppercase tracking-wider text-indigo-600 bg-indigo-50 px-2.5 py-1 rounded-md">Regola 2</span>
+                        <h2 class="text-2xl sm:text-3xl font-extrabold text-slate-900 mt-2">Potenze ($x^n$), Radici ed Esponenti Negativi</h2>
+                        <p class="text-slate-600 mt-1">La regola d'oro delle potenze e i trucchi per gestire radici e frazioni.</p>
+                    </div>
+
+                    <!-- Regola Base vs Composta -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div class="p-5 bg-indigo-50/60 rounded-xl border border-indigo-200">
+                            <span class="text-xs font-bold text-indigo-600 uppercase">Regola Base</span>
+                            <div class="text-xl font-bold text-slate-900 my-2">
+                                $$\frac{d}{dx}[x^n] = n \cdot x^{n-1}$$
+                            </div>
+                            <p class="text-xs text-slate-600">"Moltiplica per l'esponente $n$ e riduci l'esponente di $1$".</p>
+                        </div>
+
+                        <div class="p-5 bg-purple-50/60 rounded-xl border border-purple-200">
+                            <span class="text-xs font-bold text-purple-600 uppercase">Variante per Funzioni Composte</span>
+                            <div class="text-xl font-bold text-slate-900 my-2">
+                                $$\frac{d}{dx}\left[ [f(x)]^n \right] = n \cdot [f(x)]^{n-1} \cdot f'(x)$$
+                            </div>
+                            <p class="text-xs text-slate-600">Moltiplica per la <strong>derivata interna</strong> $f'(x)$ (Regola della Catena / Chain Rule).</p>
+                        </div>
+                    </div>
+
+                    <!-- Approfondimento Radici ed Esponenti Negativi -->
+                    <div class="bg-amber-50/70 border border-amber-200 p-5 rounded-2xl space-y-3">
+                        <h3 class="font-bold text-amber-900 text-sm flex items-center gap-2">
+                            <span>💡</span> Guida Segreta: Trasformare Radici e Frazioni in Potenze
+                        </h3>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs sm:text-sm">
+                            <div class="bg-white p-4 rounded-xl border border-amber-200 space-y-2">
+                                <p class="font-bold text-amber-800">1. Radici come Esponenti Fratti ($\sqrt[n]{x^m} = x^{m/n}$)</p>
+                                <p class="text-slate-600">Non serve imparare formule a memoria! Trasforma la radice in potenza:</p>
+                                <div class="bg-slate-50 p-2.5 rounded-lg font-mono text-xs">
+                                    $\sqrt{x} = x^{1/2} \implies (x^{1/2})' = \frac{1}{2} x^{-1/2} = \frac{1}{2\sqrt{x}}$
+                                </div>
+                            </div>
+                            <div class="bg-white p-4 rounded-xl border border-amber-200 space-y-2">
+                                <p class="font-bold text-amber-800">2. Frazioni come Esponenti Negativi ($\frac{1}{x^n} = x^{-n}$)</p>
+                                <p class="text-slate-600">Porta la $x$ al numeratore cambiando il segno dell'esponente:</p>
+                                <div class="bg-slate-50 p-2.5 rounded-lg font-mono text-xs">
+                                    $\frac{1}{x} = x^{-1} \implies (x^{-1})' = -1 \cdot x^{-2} = -\frac{1}{x^2}$
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Esempi Svolti -->
+                    <div class="bg-slate-50 p-4 rounded-xl border border-slate-200">
+                        <h4 class="font-bold text-slate-800 text-xs uppercase mb-2">Esempio Composto Svolto</h4>
+                        <div class="bg-white p-3 rounded-lg border border-slate-200 text-xs sm:text-sm space-y-1">
+                            <p>Calcolare la derivata di $g(x) = (3x^2 + 1)^4$</p>
+                            <p class="text-slate-600">1. Identifica la funzione interna: $f(x) = 3x^2 + 1 \implies f'(x) = 6x$.</p>
+                            <p class="text-slate-600">2. Applica la regola: $g'(x) = 4 \cdot (3x^2 + 1)^{4-1} \cdot (6x) = 24x(3x^2 + 1)^3$.</p>
+                        </div>
+                    </div>
+
+                    <!-- Canvas Interattivo Potenze -->
+                    <div class="bg-slate-50 p-4 sm:p-6 rounded-2xl border border-slate-200">
+                        <div class="flex flex-col sm:flex-row justify-between sm:items-center mb-4 gap-2">
+                            <div>
+                                <h3 class="font-bold text-slate-900">Esploratore delle Potenze</h3>
+                                <p class="text-xs text-slate-500">Seleziona la funzione per osservare $f(x)$ (blu) e $f'(x)$ (arancione).</p>
+                            </div>
+                            <!-- Selettore Funzione -->
+                            <div class="flex gap-1.5 bg-slate-200 p-1 rounded-xl text-xs font-semibold">
+                                <button onclick="setPowerFunc('x2')" id="btn-pow-x2" class="px-3 py-1 rounded-lg bg-white text-indigo-600 shadow-sm">x²</button>
+                                <button onclick="setPowerFunc('x3')" id="btn-pow-x3" class="px-3 py-1 rounded-lg hover:text-indigo-600">x³</button>
+                                <button onclick="setPowerFunc('sqrt')" id="btn-pow-sqrt" class="px-3 py-1 rounded-lg hover:text-indigo-600">√x</button>
+                                <button onclick="setPowerFunc('inv')" id="btn-pow-inv" class="px-3 py-1 rounded-lg hover:text-indigo-600">1/x</button>
+                            </div>
+                        </div>
+
+                        <div class="relative w-full h-[300px] bg-slate-900 rounded-xl overflow-hidden shadow-inner">
+                            <canvas id="canvas-power" class="w-full h-full block"></canvas>
+                        </div>
+
+                        <div class="mt-4 bg-white p-3.5 rounded-xl border border-slate-200">
+                            <div class="flex justify-between text-xs font-semibold mb-1">
+                                <label for="slider-x-power" class="text-slate-700">Ispeziona punto $x$:</label>
+                                <span id="val-x-power" class="text-indigo-600 font-mono">1.50</span>
+                            </div>
+                            <input type="range" id="slider-x-power" min="0.2" max="3" step="0.05" value="1.5" class="w-full accent-indigo-600">
+                            
+                            <div class="mt-2 text-xs flex justify-between font-mono bg-indigo-50 p-2 rounded-lg text-slate-700">
+                                <span>$f(x)$: <strong id="pow-readout-fx" class="text-blue-600">--</strong></span>
+                                <span>Pendenza Tangente $f'(x)$: <strong id="pow-readout-fpx" class="text-orange-600">--</strong></span>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- ==================== SEZIONE 4: ESPONENZIALI ==================== -->
+                <section id="section-3" class="section-content space-y-6 hidden">
+                    <div class="border-b border-slate-200 pb-4">
+                        <span class="text-xs font-semibold uppercase tracking-wider text-indigo-600 bg-indigo-50 px-2.5 py-1 rounded-md">Regola 3</span>
+                        <h2 class="text-2xl sm:text-3xl font-extrabold text-slate-900 mt-2">Funzioni Esponenziali ($e^x$ e $a^x$)</h2>
+                        <p class="text-slate-600 mt-1">La magia della funzione $e^x$, la cui derivata è uguale a se stessa!</p>
+                    </div>
+
+                    <!-- Carte Regola Base vs Composta -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div class="p-5 bg-indigo-50/60 rounded-xl border border-indigo-200 space-y-2">
+                            <span class="text-xs font-bold text-indigo-600 uppercase">Regola Base ($e^x$ e $a^x$)</span>
+                            <div class="text-lg font-bold text-slate-900">
+                                $$(e^x)' = e^x \quad \text{e} \quad (a^x)' = a^x \ln(a)$$
+                            </div>
+                            <p class="text-xs text-slate-600">La funzione $e^x$ ha la proprietà unica al mondo di avere una pendenza tangenziale in ogni punto pari al proprio valore!</p>
+                        </div>
+
+                        <div class="p-5 bg-purple-50/60 rounded-xl border border-purple-200 space-y-2">
+                            <span class="text-xs font-bold text-purple-600 uppercase">Variante Composta Highlighted</span>
+                            <div class="text-lg font-bold text-slate-900">
+                                $$\left( e^{f(x)} \right)' = f'(x) \cdot e^{f(x)}$$
+                            </div>
+                            <p class="text-xs text-slate-600">Riscrivi l'esponenziale intatto e moltiplicalo per la derivata dell'esponente $f'(x)$.</p>
+                        </div>
+                    </div>
+
+                    <!-- Esempi svolti -->
+                    <div class="bg-slate-50 p-4 rounded-xl border border-slate-200 space-y-3">
+                        <h4 class="font-bold text-slate-800 text-xs uppercase">Esempi Pratici Svolti Passo-Passo</h4>
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs sm:text-sm">
+                            <div class="bg-white p-3.5 rounded-lg border border-slate-200">
+                                <p class="font-bold text-slate-800">Esempio 1: $g(x) = e^{3x}$</p>
+                                <p class="text-slate-600 mt-1">L'esponente è $f(x) = 3x \implies f'(x) = 3$.</p>
+                                <p class="font-bold text-indigo-600 mt-1">$g'(x) = 3 \cdot e^{3x}$</p>
+                            </div>
+                            <div class="bg-white p-3.5 rounded-lg border border-slate-200">
+                                <p class="font-bold text-slate-800">Esempio 2 (Gaussiana): $h(x) = e^{-x^2}$</p>
+                                <p class="text-slate-600 mt-1">L'esponente è $f(x) = -x^2 \implies f'(x) = -2x$.</p>
+                                <p class="font-bold text-indigo-600 mt-1">$h'(x) = -2x \cdot e^{-x^2}$</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Canvas Esponenziale -->
+                    <div class="bg-slate-50 p-4 sm:p-6 rounded-2xl border border-slate-200">
+                        <div class="flex flex-col sm:flex-row justify-between sm:items-center mb-4 gap-2">
+                            <div>
+                                <h3 class="font-bold text-slate-900">Visualizzatore di Esponenziali</h3>
+                                <p class="text-xs text-slate-500">Nota come per $e^x$, la curva blu $f(x)$ e la curva arancione $f'(x)$ siano sovrapposte!</p>
+                            </div>
+                            <div class="flex gap-1.5 bg-slate-200 p-1 rounded-xl text-xs font-semibold">
+                                <button onclick="setExpFunc('ex')" id="btn-exp-ex" class="px-3 py-1 rounded-lg bg-white text-indigo-600 shadow-sm">e^x</button>
+                                <button onclick="setExpFunc('2x')" id="btn-exp-2x" class="px-3 py-1 rounded-lg hover:text-indigo-600">2^x</button>
+                                <button onclick="setExpFunc('gauss')" id="btn-exp-gauss" class="px-3 py-1 rounded-lg hover:text-indigo-600">e^(-0.5x²)</button>
+                            </div>
+                        </div>
+
+                        <div class="relative w-full h-[300px] bg-slate-900 rounded-xl overflow-hidden shadow-inner">
+                            <canvas id="canvas-exp" class="w-full h-full block"></canvas>
+                        </div>
+
+                        <div class="mt-4 bg-white p-3.5 rounded-xl border border-slate-200">
+                            <div class="flex justify-between text-xs font-semibold mb-1">
+                                <label for="slider-x-exp" class="text-slate-700">Ispeziona coordinata $x$:</label>
+                                <span id="val-x-exp" class="text-indigo-600 font-mono">1.00</span>
+                            </div>
+                            <input type="range" id="slider-x-exp" min="-2" max="2" step="0.05" value="1" class="w-full accent-indigo-600">
+                        </div>
+                    </div>
+                </section>
+
+                <!-- ==================== SEZIONE 5: LOGARITMI ==================== -->
+                <section id="section-4" class="section-content space-y-6 hidden">
+                    <div class="border-b border-slate-200 pb-4">
+                        <span class="text-xs font-semibold uppercase tracking-wider text-indigo-600 bg-indigo-50 px-2.5 py-1 rounded-md">Regola 4</span>
+                        <h2 class="text-2xl sm:text-3xl font-extrabold text-slate-900 mt-2">Funzioni Logaritmiche ($\ln x$ e $\log_a x$)</h2>
+                        <p class="text-slate-600 mt-1">La derivata del logaritmo naturale e le derivate dei logaritmi in qualsiasi base.</p>
+                    </div>
+
+                    <!-- Carte Regole -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div class="p-5 bg-indigo-50/60 rounded-xl border border-indigo-200 space-y-2">
+                            <span class="text-xs font-bold text-indigo-600 uppercase">Regola Base ($x > 0$)</span>
+                            <div class="text-lg font-bold text-slate-900">
+                                $$(\ln x)' = \frac{1}{x} \quad \text{e} \quad (\log_a x)' = \frac{1}{x \ln a}$$
+                            </div>
+                            <p class="text-xs text-slate-600">La derivata di $\ln x$ decresce rapidamente all'aumentare di $x$.</p>
+                        </div>
+
+                        <div class="p-5 bg-purple-50/60 rounded-xl border border-purple-200 space-y-2">
+                            <span class="text-xs font-bold text-purple-600 uppercase">Variante Composta</span>
+                            <div class="text-lg font-bold text-slate-900">
+                                $$\left[ \ln(f(x)) \right]' = \frac{f'(x)}{f(x)}$$
+                            </div>
+                            <p class="text-xs text-slate-600">La derivata del logaritmo di una funzione è il rapporto tra la derivata dell'argomento e l'argomento stesso!</p>
+                        </div>
+                    </div>
+
+                    <!-- Esempio Svolto -->
+                    <div class="bg-slate-50 p-4 rounded-xl border border-slate-200">
+                        <h4 class="font-bold text-slate-800 text-xs uppercase mb-2">Esempi Svolti Passo-Passo</h4>
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs sm:text-sm">
+                            <div class="bg-white p-3.5 rounded-lg border border-slate-200">
+                                <p class="font-bold text-slate-800">Caso 1: $g(x) = \ln(x^2 + 1)$</p>
+                                <p class="text-slate-600 mt-1">Argomento $f(x) = x^2 + 1 \implies f'(x) = 2x$.</p>
+                                <p class="font-bold text-indigo-600 mt-1">$g'(x) = \frac{2x}{x^2 + 1}$</p>
+                            </div>
+                            <div class="bg-white p-3.5 rounded-lg border border-slate-200">
+                                <p class="font-bold text-slate-800">Caso 2: $h(x) = \ln(\sin x)$</p>
+                                <p class="text-slate-600 mt-1">Argomento $f(x) = \sin x \implies f'(x) = \cos x$.</p>
+                                <p class="font-bold text-indigo-600 mt-1">$h'(x) = \frac{\cos x}{\sin x} = \cot x$</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Canvas Logaritmo -->
+                    <div class="bg-slate-50 p-4 sm:p-6 rounded-2xl border border-slate-200">
+                        <h3 class="font-bold text-slate-900 mb-1">Grafico di $f(x) = \ln(x)$ e della sua Derivata $f'(x) = 1/x$</h3>
+                        <p class="text-xs text-slate-500 mb-4">Dominio $x > 0$. Nota come per $x \to 0^+$ la pendenza sia tendente a $+\infty$.</p>
+
+                        <div class="relative w-full h-[300px] bg-slate-900 rounded-xl overflow-hidden shadow-inner">
+                            <canvas id="canvas-log" class="w-full h-full block"></canvas>
+                        </div>
+
+                        <div class="mt-4 bg-white p-3.5 rounded-xl border border-slate-200">
+                            <div class="flex justify-between text-xs font-semibold mb-1">
+                                <label for="slider-x-log" class="text-slate-700">Valore di $x$ ($> 0$):</label>
+                                <span id="val-x-log" class="text-indigo-600 font-mono">2.00</span>
+                            </div>
+                            <input type="range" id="slider-x-log" min="0.1" max="5" step="0.1" value="2" class="w-full accent-indigo-600">
+                        </div>
+                    </div>
+                </section>
+
+                <!-- ==================== SEZIONE 6: GONIOMETRICHE ==================== -->
+                <section id="section-5" class="section-content space-y-6 hidden">
+                    <div class="border-b border-slate-200 pb-4">
+                        <span class="text-xs font-semibold uppercase tracking-wider text-indigo-600 bg-indigo-50 px-2.5 py-1 rounded-md">Regola 5</span>
+                        <h2 class="text-2xl sm:text-3xl font-extrabold text-slate-900 mt-2">Funzioni Goniometriche ($\sin, \cos, \tan$)</h2>
+                        <p class="text-slate-600 mt-1">L'armonia ciclica delle derivate di Seno, Coseno e Tangente.</p>
+                    </div>
+
+                    <!-- Tabella Regole Goniometriche -->
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div class="p-4 bg-indigo-50/60 rounded-xl border border-indigo-200 space-y-1">
+                            <span class="text-xs font-bold text-indigo-600 uppercase">Seno</span>
+                            <div class="text-base font-bold text-slate-900">$(\sin x)' = \cos x$</div>
+                            <div class="text-xs text-purple-700 font-medium">Composta: $[\sin(f)]' = f' \cdot \cos(f)$</div>
+                        </div>
+                        <div class="p-4 bg-indigo-50/60 rounded-xl border border-indigo-200 space-y-1">
+                            <span class="text-xs font-bold text-indigo-600 uppercase">Coseno</span>
+                            <div class="text-base font-bold text-slate-900">$(\cos x)' = -\sin x$</div>
+                            <div class="text-xs text-purple-700 font-medium">Composta: $[\cos(f)]' = -f' \cdot \sin(f)$</div>
+                        </div>
+                        <div class="p-4 bg-indigo-50/60 rounded-xl border border-indigo-200 space-y-1">
+                            <span class="text-xs font-bold text-indigo-600 uppercase">Tangente</span>
+                            <div class="text-xs font-bold text-slate-900">$(\tan x)' = \frac{1}{\cos^2 x} = 1 + \tan^2 x$</div>
+                            <div class="text-xs text-purple-700 font-medium">Composta: $[\tan(f)]' = \frac{f'}{\cos^2(f)}$</div>
+                        </div>
+                    </div>
+
+                    <!-- Esempio Svolto -->
+                    <div class="bg-slate-50 p-4 rounded-xl border border-slate-200">
+                        <h4 class="font-bold text-slate-800 text-xs uppercase mb-2">Esempio Composto</h4>
+                        <div class="bg-white p-3 rounded-lg border border-slate-200 text-xs sm:text-sm">
+                            <p>Derivata di $g(x) = \sin(4x^3)$</p>
+                            <p class="text-slate-600 mt-1">Derivata interna $f'(x) = 12x^2$. Quindi: $g'(x) = 12x^2 \cdot \cos(4x^3)$.</p>
+                        </div>
+                    </div>
+
+                    <!-- Canvas Goniometriche -->
+                    <div class="bg-slate-50 p-4 sm:p-6 rounded-2xl border border-slate-200">
+                        <div class="flex flex-col sm:flex-row justify-between sm:items-center mb-4 gap-2">
+                            <div>
+                                <h3 class="font-bold text-slate-900">Laboratorio d'Onda Goniometrica</h3>
+                                <p class="text-xs text-slate-500">Osserva come la derivata di $\sin(x)$ sia perfettamente sfasata ed equivalga a $\cos(x)$.</p>
+                            </div>
+                            <div class="flex gap-1.5 bg-slate-200 p-1 rounded-xl text-xs font-semibold">
+                                <button onclick="setTrigFunc('sin')" id="btn-trig-sin" class="px-3 py-1 rounded-lg bg-white text-indigo-600 shadow-sm">sin(x)</button>
+                                <button onclick="setTrigFunc('cos')" id="btn-trig-cos" class="px-3 py-1 rounded-lg hover:text-indigo-600">cos(x)</button>
+                                <button onclick="setTrigFunc('tan')" id="btn-trig-tan" class="px-3 py-1 rounded-lg hover:text-indigo-600">tan(x)</button>
+                            </div>
+                        </div>
+
+                        <div class="relative w-full h-[300px] bg-slate-900 rounded-xl overflow-hidden shadow-inner">
+                            <canvas id="canvas-trig" class="w-full h-full block"></canvas>
+                        </div>
+
+                        <div class="mt-4 bg-white p-3.5 rounded-xl border border-slate-200">
+                            <div class="flex justify-between text-xs font-semibold mb-1">
+                                <label for="slider-x-trig" class="text-slate-700">Angolo $x$ (in radianti):</label>
+                                <span id="val-x-trig" class="text-indigo-600 font-mono">0.00 rad (0°)</span>
+                            </div>
+                            <input type="range" id="slider-x-trig" min="-6.28" max="6.28" step="0.1" value="0" class="w-full accent-indigo-600">
+                        </div>
+                    </div>
+                </section>
+
+                <!-- ==================== SEZIONE 7: ALGEBRA DELLE DERIVATE ==================== -->
+                <section id="section-6" class="section-content space-y-6 hidden">
+                    <div class="border-b border-slate-200 pb-4">
+                        <span class="text-xs font-semibold uppercase tracking-wider text-indigo-600 bg-indigo-50 px-2.5 py-1 rounded-md">Regola 6</span>
+                        <h2 class="text-2xl sm:text-3xl font-extrabold text-slate-900 mt-2">Algebra delle Derivate (Somma, Prodotto, Quoziente)</h2>
+                        <p class="text-slate-600 mt-1">Regole operative per combinare più funzioni tra loro.</p>
+                    </div>
+
+                    <!-- Carte Regole -->
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div class="p-4 bg-indigo-50/60 rounded-xl border border-indigo-200 space-y-2">
+                            <span class="text-xs font-bold text-indigo-600 uppercase">1. Somma & Differenza</span>
+                            <div class="text-sm font-bold text-slate-900">
+                                $$[f(x) \pm g(x)]' = f'(x) \pm g'(x)$$
+                            </div>
+                            <p class="text-xs text-slate-600">La derivata di una somma è semplicemente la somma delle singole derivate.</p>
+                        </div>
+
+                        <div class="p-4 bg-purple-50/60 rounded-xl border border-purple-200 space-y-2">
+                            <span class="text-xs font-bold text-purple-600 uppercase">2. Prodotto (Leibniz)</span>
+                            <div class="text-sm font-bold text-slate-900">
+                                $$[f \cdot g]' = f'g + fg'$$
+                            </div>
+                            <p class="text-xs text-slate-600">Attenzione: <strong>NON</strong> è il prodotto delle derivate! È "derivata del primo per il secondo non derivato + ...".</p>
+                        </div>
+
+                        <div class="p-4 bg-amber-50/60 rounded-xl border border-amber-200 space-y-2">
+                            <span class="text-xs font-bold text-amber-600 uppercase">3. Quoziente (Rapporto)</span>
+                            <div class="text-xs font-bold text-slate-900">
+                                $$\left[\frac{f}{g}\right]' = \frac{f'g - fg'}{g^2}$$
+                            </div>
+                            <p class="text-xs text-slate-600">Numeratore: "derivata del sopra per il sotto meno sopra per derivata del sotto". Denominatore al quadrato!</p>
+                        </div>
+                    </div>
+
+                    <!-- Esempi Svolti -->
+                    <div class="bg-slate-50 p-4 rounded-xl border border-slate-200">
+                        <h4 class="font-bold text-slate-800 text-xs uppercase mb-2">Esercizio Guida Passo-Passo (Quoziente)</h4>
+                        <div class="bg-white p-3.5 rounded-lg border border-slate-200 text-xs sm:text-sm space-y-1">
+                            <p class="font-semibold text-slate-900">Calcola la derivata di $h(x) = \frac{x}{x^2 + 1}$</p>
+                            <p class="text-slate-600">1. $f(x) = x \implies f'(x) = 1$</p>
+                            <p class="text-slate-600">2. $g(x) = x^2 + 1 \implies g'(x) = 2x$</p>
+                            <p class="text-slate-600">3. Formula: $h'(x) = \frac{1 \cdot (x^2 + 1) - x \cdot (2x)}{(x^2 + 1)^2} = \frac{x^2 + 1 - 2x^2}{(x^2 + 1)^2} = \frac{1 - x^2}{(x^2 + 1)^2}$</p>
+                        </div>
+                    </div>
+
+                    <!-- Canvas Combinato -->
+                    <div class="bg-slate-50 p-4 sm:p-6 rounded-2xl border border-slate-200">
+                        <div class="flex flex-col sm:flex-row justify-between sm:items-center mb-4 gap-2">
+                            <div>
+                                <h3 class="font-bold text-slate-900">Esploratore di Funzioni Combinate</h3>
+                                <p class="text-xs text-slate-500">Sperimenta prodotti e quozienti famosi con il loro grafico e la rispettiva derivata.</p>
+                            </div>
+                            <div class="flex gap-1.5 bg-slate-200 p-1 rounded-xl text-xs font-semibold">
+                                <button onclick="setAlgFunc('prod')" id="btn-alg-prod" class="px-3 py-1 rounded-lg bg-white text-indigo-600 shadow-sm">x · e^(-x)</button>
+                                <button onclick="setAlgFunc('quot')" id="btn-alg-quot" class="px-3 py-1 rounded-lg hover:text-indigo-600">x / (x²+1)</button>
+                            </div>
+                        </div>
+
+                        <div class="relative w-full h-[300px] bg-slate-900 rounded-xl overflow-hidden shadow-inner">
+                            <canvas id="canvas-alg" class="w-full h-full block"></canvas>
+                        </div>
+
+                        <div class="mt-4 bg-white p-3.5 rounded-xl border border-slate-200">
+                            <div class="flex justify-between text-xs font-semibold mb-1">
+                                <label for="slider-x-alg" class="text-slate-700">Ispeziona punto $x$:</label>
+                                <span id="val-x-alg" class="text-indigo-600 font-mono">0.00</span>
+                            </div>
+                            <input type="range" id="slider-x-alg" min="-3" max="4" step="0.1" value="0" class="w-full accent-indigo-600">
+                        </div>
+                    </div>
+                </section>
+
+            </div>
+
+            <!-- PULSANTI DI NAVIGAZIONE INFERIORI -->
+            <div class="mt-8 pt-4 border-t border-slate-200 flex items-center justify-between gap-4">
+                <button id="btn-prev" onclick="prevSection()" class="px-5 py-2.5 rounded-xl border border-slate-300 font-semibold text-slate-700 text-sm hover:bg-slate-100 transition-all flex items-center gap-2">
+                    <span>←</span> Sezione Precedente
+                </button>
+                <div class="text-xs text-slate-400 hidden sm:block">Usa le frecce per esplorare i moduli</div>
+                <button id="btn-next" onclick="nextSection()" class="px-5 py-2.5 rounded-xl bg-indigo-600 text-white font-semibold text-sm hover:bg-indigo-700 transition-all flex items-center gap-2 shadow-sm">
+                    Sezione Successiva <span>→</span>
+                </button>
+            </div>
+
+        </main>
+    </div>
+
+    <!-- ==================== JAVASCRIPT APP LOGIC ==================== -->
+    <script>
+        // Stato dell'applicazione
+        let currentSection = 0;
+        const totalSections = 7;
+
+        // Stato dei Canvas Interattivi
+        let powerFuncType = 'x2';
+        let expFuncType = 'ex';
+        let trigFuncType = 'sin';
+        let algFuncType = 'prod';
+
+        // Inizializzazione al caricamento
+        window.addEventListener('DOMContentLoaded', () => {
+            renderMathInElement(document.body, {
+                delimiters: [
+                    {left: '$$', right: '$$', display: true},
+                    {left: '$', right: '$', display: false}
+                ],
+                throwOnError: false
+            });
+
+            setupCanvasResizeListeners();
+            updateNavigationUI();
+            initCurrentSectionCanvas();
+        });
+
+        // Gestione cambio sezione
+        function navigateTo(index) {
+            if (index < 0 || index >= totalSections) return;
+            
+            // Nascondi tutte le sezioni
+            document.querySelectorAll('.section-content').forEach(sec => sec.classList.add('hidden'));
+            
+            // Mostra quella selezionata
+            currentSection = index;
+            document.getElementById(`section-${currentSection}`).classList.remove('hidden');
+
+            updateNavigationUI();
+            
+            // Re-render KaTeX in caso di nuovo contenuto
+            renderMathInElement(document.getElementById(`section-${currentSection}`), {
+                delimiters: [{left: '$$', right: '$$', display: true}, {left: '$', right: '$', display: false}],
+                throwOnError: false
+            });
+
+            // Inizializza o ridisegna il canvas attivo
+            setTimeout(() => {
+                initCurrentSectionCanvas();
+            }, 50);
+        }
+
+        function prevSection() { navigateTo(currentSection - 1); }
+        function nextSection() { navigateTo(currentSection + 1); }
+
+        function updateNavigationUI() {
+            // Aggiorna contatore nell'header
+            document.getElementById('current-step-num').textContent = currentSection + 1;
+
+            // Aggiorna stile bottoni della sidebar
+            const buttons = document.querySelectorAll('#sidebar-nav .nav-btn');
+            buttons.forEach((btn, idx) => {
+                const badge = btn.querySelector('span:first-child');
+                if (idx === currentSection) {
+                    btn.className = "nav-btn w-full text-left px-3.5 py-3 rounded-xl font-medium text-sm transition-all duration-200 flex items-center gap-3 bg-indigo-50 text-indigo-700 font-semibold shadow-sm border border-indigo-100";
+                    badge.className = "w-6 h-6 rounded-lg bg-indigo-600 text-white text-xs flex items-center justify-center font-bold flex-shrink-0";
+                } else {
+                    btn.className = "nav-btn w-full text-left px-3.5 py-3 rounded-xl font-medium text-sm text-slate-600 hover:bg-slate-100 hover:text-slate-900 transition-all duration-200 flex items-center gap-3";
+                    badge.className = "w-6 h-6 rounded-lg bg-slate-200 text-slate-700 text-xs flex items-center justify-center font-bold flex-shrink-0";
+                }
+            });
+
+            // Disabilita/Abilita bottoni prev/next
+            document.getElementById('btn-prev').disabled = (currentSection === 0);
+            document.getElementById('btn-prev').style.opacity = (currentSection === 0) ? '0.5' : '1';
+            
+            document.getElementById('btn-next').disabled = (currentSection === totalSections - 1);
+            document.getElementById('btn-next').style.opacity = (currentSection === totalSections - 1) ? '0.5' : '1';
+        }
+
+        // Setup resize per i Canvas High DPI
+        function setupCanvasResizeListeners() {
+            window.addEventListener('resize', () => {
+                initCurrentSectionCanvas();
+            });
+
+            // Event Listeners sugli Slider
+            document.getElementById('slider-x0').addEventListener('input', drawSecantCanvas);
+            document.getElementById('slider-h').addEventListener('input', drawSecantCanvas);
+            
+            document.getElementById('slider-m').addEventListener('input', drawLinearCanvas);
+            document.getElementById('slider-q').addEventListener('input', drawLinearCanvas);
+            
+            document.getElementById('slider-x-power').addEventListener('input', drawPowerCanvas);
+            document.getElementById('slider-x-exp').addEventListener('input', drawExpCanvas);
+            document.getElementById('slider-x-log').addEventListener('input', drawLogCanvas);
+            document.getElementById('slider-x-trig').addEventListener('input', drawTrigCanvas);
+            document.getElementById('slider-x-alg').addEventListener('input', drawAlgCanvas);
+        }
+
+        function getCanvasContext(canvasId) {
+            const canvas = document.getElementById(canvasId);
+            if (!canvas) return null;
+            const rect = canvas.getBoundingClientRect();
+            const dpr = window.devicePixelRatio || 1;
+            
+            canvas.width = rect.width * dpr;
+            canvas.height = rect.height * dpr;
+            
+            const ctx = canvas.getContext('2d');
+            ctx.resetTransform();
+            ctx.scale(dpr, dpr);
+            return { ctx, width: rect.width, height: rect.height };
+        }
+
+        function initCurrentSectionCanvas() {
+            switch(currentSection) {
+                case 0: drawSecantCanvas(); break;
+                case 1: drawLinearCanvas(); break;
+                case 2: drawPowerCanvas(); break;
+                case 3: drawExpCanvas(); break;
+                case 4: drawLogCanvas(); break;
+                case 5: drawTrigCanvas(); break;
+                case 6: drawAlgCanvas(); break;
+            }
+        }
+
+        // Helper per tracciare assi e griglia cartesiana
+        function drawGrid(ctx, width, height, scaleX, scaleY, originX, originY) {
+            ctx.clearRect(0, 0, width, height);
+            ctx.strokeStyle = '#334155';
+            ctx.lineWidth = 1;
+
+            // Griglia di sottofondo
+            ctx.beginPath();
+            ctx.strokeStyle = '#1e293b';
+            for (let x = originX % scaleX; x < width; x += scaleX) {
+                ctx.moveTo(x, 0); ctx.lineTo(x, height);
+            }
+            for (let y = originY % scaleY; y < height; y += scaleY) {
+                ctx.moveTo(0, y); ctx.lineTo(width, y);
+            }
+            ctx.stroke();
+
+            // Assi Principali X e Y
+            ctx.beginPath();
+            ctx.strokeStyle = '#64748b';
+            ctx.lineWidth = 1.5;
+            ctx.moveTo(0, originY); ctx.lineTo(width, originY); // Asse X
+            ctx.moveTo(originX, 0); ctx.lineTo(originX, height); // Asse Y
+            ctx.stroke();
+        }
+
+        // ==================== CANVAS 1: SECANTE & TANGENTE ====================
+        function drawSecantCanvas() {
+            const c = getCanvasContext('canvas-secant');
+            if (!c) return;
+            const { ctx, width, height } = c;
+
+            const x0 = parseFloat(document.getElementById('slider-x0').value);
+            const h = parseFloat(document.getElementById('slider-h').value);
+            
+            document.getElementById('val-x0').textContent = x0.toFixed(2);
+            document.getElementById('val-h').textContent = h.toFixed(2);
+
+            const scale = 50;
+            const originX = width / 2;
+            const originY = height - 50;
+
+            drawGrid(ctx, width, height, scale, scale, originX, originY);
+
+            // Curve f(x) = x^2
+            ctx.beginPath();
+            ctx.strokeStyle = '#3b82f6'; // Blu
+            ctx.lineWidth = 3;
+            for (let px = 0; px < width; px++) {
+                const x = (px - originX) / scale;
+                const y = x * x;
+                const py = originY - y * scale;
+                if (px === 0) ctx.moveTo(px, py); else ctx.lineTo(px, py);
+            }
+            ctx.stroke();
+
+            // Punti P(x0, y0) e Q(x0+h, y0+h)
+            const y0 = x0 * x0;
+            const x1 = x0 + h;
+            const y1 = x1 * x1;
+
+            const px0 = originX + x0 * scale;
+            const py0 = originY - y0 * scale;
+            const px1 = originX + x1 * scale;
+            const py1 = originY - y1 * scale;
+
+            // Retta Secante (Viola)
+            const secantSlope = (y1 - y0) / h;
+            document.getElementById('readout-secant-slope').textContent = secantSlope.toFixed(3);
+
+            ctx.beginPath();
+            ctx.strokeStyle = '#a855f7';
+            ctx.lineWidth = 2;
+            ctx.setLineDash([5, 5]);
+            const xStart = -4, xEnd = 4;
+            ctx.moveTo(originX + xStart * scale, originY - (y0 + secantSlope * (xStart - x0)) * scale);
+            ctx.lineTo(originX + xEnd * scale, originY - (y0 + secantSlope * (xEnd - x0)) * scale);
+            ctx.stroke();
+            ctx.setLineDash([]);
+
+            // Retta Tangente (Verde)
+            const tangentSlope = 2 * x0;
+            document.getElementById('readout-tangent-slope').textContent = tangentSlope.toFixed(3);
+
+            ctx.beginPath();
+            ctx.strokeStyle = '#10b981';
+            ctx.lineWidth = 2;
+            ctx.moveTo(originX + xStart * scale, originY - (y0 + tangentSlope * (xStart - x0)) * scale);
+            ctx.lineTo(originX + xEnd * scale, originY - (y0 + tangentSlope * (xEnd - x0)) * scale);
+            ctx.stroke();
+
+            // Disegna Punti P e Q
+            ctx.fillStyle = '#3b82f6';
+            ctx.beginPath(); ctx.arc(px0, py0, 6, 0, Math.PI * 2); ctx.fill();
+
+            ctx.fillStyle = '#a855f7';
+            ctx.beginPath(); ctx.arc(px1, py1, 6, 0, Math.PI * 2); ctx.fill();
+        }
+
+        // ==================== CANVAS 2: LINEARE ====================
+        function drawLinearCanvas() {
+            const c = getCanvasContext('canvas-linear');
+            if (!c) return;
+            const { ctx, width, height } = c;
+
+            const m = parseFloat(document.getElementById('slider-m').value);
+            const q = parseFloat(document.getElementById('slider-q').value);
+
+            const scale = 35;
+            const originX = width / 2;
+            const originY = height / 2;
+
+            drawGrid(ctx, width, height, scale, scale, originX, originY);
+
+            // Funzione f(x) = mx + q
+            ctx.beginPath();
+            ctx.strokeStyle = '#3b82f6'; ctx.lineWidth = 3;
+            ctx.moveTo(0, originY - (m * (-originX/scale) + q) * scale);
+            ctx.lineTo(width, originY - (m * ((width - originX)/scale) + q) * scale);
+            ctx.stroke();
+
+            // Derivata f'(x) = m (linea orizzontale arancione)
+            ctx.beginPath();
+            ctx.strokeStyle = '#f97316'; ctx.lineWidth = 2.5; ctx.setLineDash([6, 4]);
+            ctx.moveTo(0, originY - m * scale);
+            ctx.lineTo(width, originY - m * scale);
+            ctx.stroke();
+            ctx.setLineDash([]);
+        }
+
+        // ==================== CANVAS 3: POTENZE ====================
+        function setPowerFunc(type) {
+            powerFuncType = type;
+            ['x2','x3','sqrt','inv'].forEach(t => {
+                const btn = document.getElementById(`btn-pow-${t}`);
+                if (t === type) {
+                    btn.className = "px-3 py-1 rounded-lg bg-white text-indigo-600 shadow-sm font-bold";
+                } else {
+                    btn.className = "px-3 py-1 rounded-lg hover:text-indigo-600 font-medium";
+                }
+            });
+            drawPowerCanvas();
+        }
+
+        function drawPowerCanvas() {
+            const c = getCanvasContext('canvas-power');
+            if (!c) return;
+            const { ctx, width, height } = c;
+
+            const xVal = parseFloat(document.getElementById('slider-x-power').value);
+            document.getElementById('val-x-power').textContent = xVal.toFixed(2);
+
+            const scale = 45;
+            const originX = 60;
+            const originY = height - 60;
+
+            drawGrid(ctx, width, height, scale, scale, originX, originY);
+
+            let f = x => x*x;
+            let df = x => 2*x;
+
+            if (powerFuncType === 'x3') { f = x => x*x*x; df = x => 3*x*x; }
+            else if (powerFuncType === 'sqrt') { f = x => Math.sqrt(x); df = x => 0.5 / Math.sqrt(x); }
+            else if (powerFuncType === 'inv') { f = x => 1/x; df = x => -1/(x*x); }
+
+            // Traccia f(x)
+            ctx.beginPath(); ctx.strokeStyle = '#3b82f6'; ctx.lineWidth = 3;
+            for (let px = 1; px < width; px++) {
+                const x = (px - originX) / scale;
+                if (x <= 0 && (powerFuncType === 'sqrt' || powerFuncType === 'inv')) continue;
+                const y = f(x);
+                const py = originY - y * scale;
+                if (px === 1 || (x > 0 && powerFuncType === 'inv' && (x - 1/scale <= 0))) ctx.moveTo(px, py); 
+                else ctx.lineTo(px, py);
+            }
+            ctx.stroke();
+
+            // Traccia f'(x)
+            ctx.beginPath(); ctx.strokeStyle = '#f97316'; ctx.lineWidth = 2; ctx.setLineDash([4, 4]);
+            for (let px = 1; px < width; px++) {
+                const x = (px - originX) / scale;
+                if (x <= 0 && (powerFuncType === 'sqrt' || powerFuncType === 'inv')) continue;
+                const y = df(x);
+                const py = originY - y * scale;
+                if (px === 1) ctx.moveTo(px, py); else ctx.lineTo(px, py);
+            }
+            ctx.stroke(); ctx.setLineDash([]);
+
+            // Valori ispezionati
+            const fx = f(xVal);
+            const fpx = df(xVal);
+            document.getElementById('pow-readout-fx').textContent = fx.toFixed(2);
+            document.getElementById('pow-readout-fpx').textContent = fpx.toFixed(2);
+
+            // Disegna punto e retta tangente
+            const px0 = originX + xVal * scale;
+            const py0 = originY - fx * scale;
+
+            ctx.strokeStyle = '#10b981'; ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.moveTo(px0 - 40, py0 + 40 * fpx);
+            ctx.lineTo(px0 + 40, py0 - 40 * fpx);
+            ctx.stroke();
+
+            ctx.fillStyle = '#3b82f6';
+            ctx.beginPath(); ctx.arc(px0, py0, 5, 0, Math.PI*2); ctx.fill();
+        }
+
+        // ==================== CANVAS 4: ESPONENZIALI ====================
+        function setExpFunc(type) {
+            expFuncType = type;
+            ['ex','2x','gauss'].forEach(t => {
+                const btn = document.getElementById(`btn-exp-${t}`);
+                if (t === type) btn.className = "px-3 py-1 rounded-lg bg-white text-indigo-600 shadow-sm font-bold";
+                else btn.className = "px-3 py-1 rounded-lg hover:text-indigo-600 font-medium";
+            });
+            drawExpCanvas();
+        }
+
+        function drawExpCanvas() {
+            const c = getCanvasContext('canvas-exp');
+            if (!c) return;
+            const { ctx, width, height } = c;
+
+            const xVal = parseFloat(document.getElementById('slider-x-exp').value);
+            document.getElementById('val-x-exp').textContent = xVal.toFixed(2);
+
+            const scale = 50;
+            const originX = width / 2;
+            const originY = height - 40;
+
+            drawGrid(ctx, width, height, scale, scale, originX, originY);
+
+            let f = x => Math.exp(x);
+            let df = x => Math.exp(x);
+
+            if (expFuncType === '2x') { f = x => Math.pow(2, x); df = x => Math.pow(2, x) * Math.log(2); }
+            else if (expFuncType === 'gauss') { f = x => Math.exp(-0.5 * x * x); df = x => -x * Math.exp(-0.5 * x * x); }
+
+            // Plot f(x)
+            ctx.beginPath(); ctx.strokeStyle = '#3b82f6'; ctx.lineWidth = 3;
+            for (let px = 0; px < width; px++) {
+                const x = (px - originX) / scale;
+                const py = originY - f(x) * scale;
+                if (px === 0) ctx.moveTo(px, py); else ctx.lineTo(px, py);
+            }
+            ctx.stroke();
+
+            // Plot f'(x)
+            ctx.beginPath(); ctx.strokeStyle = '#f97316'; ctx.lineWidth = 2; ctx.setLineDash([4, 4]);
+            for (let px = 0; px < width; px++) {
+                const x = (px - originX) / scale;
+                const py = originY - df(x) * scale;
+                if (px === 0) ctx.moveTo(px, py); else ctx.lineTo(px, py);
+            }
+            ctx.stroke(); ctx.setLineDash([]);
+
+            // Cursore punto
+            const px0 = originX + xVal * scale;
+            const py0 = originY - f(xVal) * scale;
+            ctx.fillStyle = '#3b82f6';
+            ctx.beginPath(); ctx.arc(px0, py0, 5, 0, Math.PI*2); ctx.fill();
+        }
+
+        // ==================== CANVAS 5: LOGARITMI ====================
+        function drawLogCanvas() {
+            const c = getCanvasContext('canvas-log');
+            if (!c) return;
+            const { ctx, width, height } = c;
+
+            const xVal = parseFloat(document.getElementById('slider-x-log').value);
+            document.getElementById('val-x-log').textContent = xVal.toFixed(2);
+
+            const scale = 50;
+            const originX = 50;
+            const originY = height / 2;
+
+            drawGrid(ctx, width, height, scale, scale, originX, originY);
+
+            // f(x) = ln(x)
+            ctx.beginPath(); ctx.strokeStyle = '#3b82f6'; ctx.lineWidth = 3;
+            for (let px = originX + 1; px < width; px++) {
+                const x = (px - originX) / scale;
+                const py = originY - Math.log(x) * scale;
+                if (px === originX + 1) ctx.moveTo(px, py); else ctx.lineTo(px, py);
+            }
+            ctx.stroke();
+
+            // f'(x) = 1/x
+            ctx.beginPath(); ctx.strokeStyle = '#f97316'; ctx.lineWidth = 2; ctx.setLineDash([4, 4]);
+            for (let px = originX + 1; px < width; px++) {
+                const x = (px - originX) / scale;
+                const py = originY - (1/x) * scale;
+                if (px === originX + 1) ctx.moveTo(px, py); else ctx.lineTo(px, py);
+            }
+            ctx.stroke(); ctx.setLineDash([]);
+
+            // Cursore
+            const px0 = originX + xVal * scale;
+            const py0 = originY - Math.log(xVal) * scale;
+            ctx.fillStyle = '#3b82f6';
+            ctx.beginPath(); ctx.arc(px0, py0, 5, 0, Math.PI*2); ctx.fill();
+        }
+
+        // ==================== CANVAS 6: GONIOMETRICHE ====================
+        function setTrigFunc(type) {
+            trigFuncType = type;
+            ['sin','cos','tan'].forEach(t => {
+                const btn = document.getElementById(`btn-trig-${t}`);
+                if (t === type) btn.className = "px-3 py-1 rounded-lg bg-white text-indigo-600 shadow-sm font-bold";
+                else btn.className = "px-3 py-1 rounded-lg hover:text-indigo-600 font-medium";
+            });
+            drawTrigCanvas();
+        }
+
+        function drawTrigCanvas() {
+            const c = getCanvasContext('canvas-trig');
+            if (!c) return;
+            const { ctx, width, height } = c;
+
+            const xVal = parseFloat(document.getElementById('slider-x-trig').value);
+            const deg = (xVal * 180 / Math.PI).toFixed(0);
+            document.getElementById('val-x-trig').textContent = `${xVal.toFixed(2)} rad (${deg}°)`;
+
+            const scaleX = 40;
+            const scaleY = 60;
+            const originX = width / 2;
+            const originY = height / 2;
+
+            drawGrid(ctx, width, height, scaleX, scaleY, originX, originY);
+
+            let f = Math.sin;
+            let df = Math.cos;
+            if (trigFuncType === 'cos') { f = Math.cos; df = x => -Math.sin(x); }
+            else if (trigFuncType === 'tan') { f = Math.tan; df = x => 1 / Math.pow(Math.cos(x), 2); }
+
+            // f(x)
+            ctx.beginPath(); ctx.strokeStyle = '#3b82f6'; ctx.lineWidth = 3;
+            for (let px = 0; px < width; px++) {
+                const x = (px - originX) / scaleX;
+                const y = f(x);
+                const py = originY - y * scaleY;
+                if (px === 0 || (trigFuncType === 'tan' && Math.abs(y) > 5)) ctx.moveTo(px, py); 
+                else ctx.lineTo(px, py);
+            }
+            ctx.stroke();
+
+            // f'(x)
+            ctx.beginPath(); ctx.strokeStyle = '#f97316'; ctx.lineWidth = 2; ctx.setLineDash([4, 4]);
+            for (let px = 0; px < width; px++) {
+                const x = (px - originX) / scaleX;
+                const dy = df(x);
+                const py = originY - dy * scaleY;
+                if (px === 0 || (trigFuncType === 'tan' && Math.abs(dy) > 10)) ctx.moveTo(px, py);
+                else ctx.lineTo(px, py);
+            }
+            ctx.stroke(); ctx.setLineDash([]);
+
+            // Cursore
+            const px0 = originX + xVal * scaleX;
+            const py0 = originY - f(xVal) * scaleY;
+            ctx.fillStyle = '#3b82f6';
+            ctx.beginPath(); ctx.arc(px0, py0, 5, 0, Math.PI*2); ctx.fill();
+        }
+
+        // ==================== CANVAS 7: ALGEBRA ====================
+        function setAlgFunc(type) {
+            algFuncType = type;
+            ['prod','quot'].forEach(t => {
+                const btn = document.getElementById(`btn-alg-${t}`);
+                if (t === type) btn.className = "px-3 py-1 rounded-lg bg-white text-indigo-600 shadow-sm font-bold";
+                else btn.className = "px-3 py-1 rounded-lg hover:text-indigo-600 font-medium";
+            });
+            drawAlgCanvas();
+        }
+
+        function drawAlgCanvas() {
+            const c = getCanvasContext('canvas-alg');
+            if (!c) return;
+            const { ctx, width, height } = c;
+
+            const xVal = parseFloat(document.getElementById('slider-x-alg').value);
+            document.getElementById('val-x-alg').textContent = xVal.toFixed(2);
+
+            const scale = 50;
+            const originX = width / 3;
+            const originY = height / 2;
+
+            drawGrid(ctx, width, height, scale, scale, originX, originY);
+
+            let f = x => x * Math.exp(-x);
+            let df = x => (1 - x) * Math.exp(-x);
+
+            if (algFuncType === 'quot') {
+                f = x => x / (x*x + 1);
+                df = x => (1 - x*x) / Math.pow(x*x + 1, 2);
+            }
+
+            // Plot f(x)
+            ctx.beginPath(); ctx.strokeStyle = '#3b82f6'; ctx.lineWidth = 3;
+            for (let px = 0; px < width; px++) {
+                const x = (px - originX) / scale;
+                const py = originY - f(x) * scale;
+                if (px === 0) ctx.moveTo(px, py); else ctx.lineTo(px, py);
+            }
+            ctx.stroke();
+
+            // Plot f'(x)
+            ctx.beginPath(); ctx.strokeStyle = '#f97316'; ctx.lineWidth = 2; ctx.setLineDash([4, 4]);
+            for (let px = 0; px < width; px++) {
+                const x = (px - originX) / scale;
+                const py = originY - df(x) * scale;
+                if (px === 0) ctx.moveTo(px, py); else ctx.lineTo(px, py);
+            }
+            ctx.stroke(); ctx.setLineDash([]);
+
+            // Tangente nel punto
+            const px0 = originX + xVal * scale;
+            const py0 = originY - f(xVal) * scale;
+            const slope = df(xVal);
+
+            ctx.strokeStyle = '#10b981'; ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.moveTo(px0 - 50, py0 + 50 * slope);
+            ctx.lineTo(px0 + 50, py0 - 50 * slope);
+            ctx.stroke();
+
+            ctx.fillStyle = '#3b82f6';
+            ctx.beginPath(); ctx.arc(px0, py0, 5, 0, Math.PI*2); ctx.fill();
+        }
+    </script>
+</body>
+</html>
