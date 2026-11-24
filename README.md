@@ -24,6 +24,10 @@ Repository della mini startup della classe 5E dell'ITIS Galileo Galilei.
 
 - [Yu-Gi-Oh!](lezioni/yugioh/README.md) – guida rapida e chiara per capire il gioco in pochi minuti, tutta in un file.
 
+- [C# File & Stream](lezioni/csharp-file-stream/index.html) – corso in 9 tappe sulla gestione dei file in C#, con codice interattivo e simulatore console.
+
+- [Corso di Inglese](lezioni/inglese/Corso%20di%20Inglese%20in%20Quinta%20Superiore.pdf) – dispensa del corso di inglese per la quinta superiore.
+
 ## Strumenti
 
 - [Opencode](installazione_opencode/README.md) – guida all'installazione del tool opencode nel terminale del Codespace.
