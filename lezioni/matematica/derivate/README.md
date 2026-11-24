@@ -15,7 +15,7 @@ Questo progetto è una guida alle derivate di funzione, contenuta **in un unico 
 
 ## Come consultarlo
 
-1. Scaricare il file `index.html` dalla cartella `progetti/matematica/derivate`
+1. Scaricare il file `index.html` dalla cartella `lezioni/matematica/derivate`
 2. Fare doppio clic sul file per aprirlo. Nel caso non venisse aperto da un browser, fare clic destro e selezionare "Apri con" > (browser a propria scelta)
 
 ## Contenuti

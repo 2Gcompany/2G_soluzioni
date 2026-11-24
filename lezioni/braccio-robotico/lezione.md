@@ -1,6 +1,6 @@
 # Lezione – Il braccio robotico
 
-Durata indicativa: 1–2 ore. Materiale: il progetto in `progetti/braccio-robotico`, la wiki in `wiki/braccio-robotico`.
+Durata indicativa: 1–2 ore. Materiale: il progetto in `lezioni/braccio-robotico`, la wiki in `wiki/braccio-robotico`.
 
 ## Obiettivi
 
