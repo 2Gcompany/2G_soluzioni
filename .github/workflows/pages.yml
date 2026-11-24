@@ -7,6 +7,12 @@ on:
       - lezioni/**
       - sito/**
       - .github/workflows/pages.yml
+  pull_request:
+    branches: [main]
+    paths:
+      - lezioni/**
+      - sito/**
+      - .github/workflows/pages.yml
   workflow_dispatch:
 
 permissions:
@@ -14,15 +20,20 @@ permissions:
   pages: write
   id-token: write
 
-concurrency:
-  group: pages
-  cancel-in-progress: false
-
 jobs:
   build:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: sito/package-lock.json
+      - run: npm ci
+        working-directory: sito
+      - run: npm test
+        working-directory: sito
       - uses: withastro/action@v6
         with:
           path: sito
@@ -30,6 +41,10 @@ jobs:
 
   deploy:
     needs: build
+    if: github.event_name != 'pull_request'
+    concurrency:
+      group: pages
+      cancel-in-progress: false
     runs-on: ubuntu-latest
     environment:
       name: github-pages

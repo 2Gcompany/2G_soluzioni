@@ -41,7 +41,7 @@ Order is dependency order. A slice with no "Blocked by" can start in parallel.
 ## S2 · Home shows what each lesson is about, and PRs check the build
 **In brief:** On the home page each lesson shows a one-line description next to its title, always in alphabetical order. Every pull request also builds the site, so a change that breaks it is caught before the merge, without publishing anything.
 **Why:** makes the home useful to a student choosing a lesson, and protects `main` from a broken deploy.
-**Size:** S
+**Size:** S · **Status:** done
 **Blocked by:** S1
 
 ### Acceptance criteria
