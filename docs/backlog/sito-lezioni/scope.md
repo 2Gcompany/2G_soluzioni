@@ -1,6 +1,6 @@
 # Sito lezioni (GitHub Pages)
 
-**Status:** scoped 2026-11-24 · **Implementer:** agent alone · **Tracker:** none (github:panicerid/2G_soluzioni available, not published)
+**Status:** scoped 2026-11-24 · **Implementer:** agent alone · **Tracker:** none (github:2Gcompany/2G_soluzioni available, not published)
 
 ## Product in brief
 - Students and teachers open one public website that lists every lesson of the class that has a web page (S1).
@@ -14,7 +14,7 @@ A GitHub Actions workflow can build an Astro container site under the project ba
 Reference mock: skipped (the only new screen is a plain list of links; the lessons keep their own design).
 
 ## Success signal
-After S1 is merged, `https://panicerid.github.io/2G_soluzioni/` lists all 5 HTML lessons and each of the 5 opens and works (yugioh videos play, derivate formulas render). Not met → fix the paths in the copy step before any other slice.
+After S1 is merged, `https://2gcompany.github.io/2G_soluzioni/` lists all 5 HTML lessons and each of the 5 opens and works (yugioh videos play, derivate formulas render). Not met → fix the paths in the copy step before any other slice.
 
 ## In scope (this round)
 - Astro site in `sito/` that generates the home page with the list of lessons.

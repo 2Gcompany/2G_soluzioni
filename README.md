@@ -25,4 +25,4 @@ Repository della mini startup della classe 5E dell'ITIS Galileo Galilei.
 ## Strumenti
 
 - [Opencode](installazione_opencode/README.md) – guida all'installazione del tool opencode nel terminale del Codespace.
-- [Sito delle lezioni](https://panicerid.github.io/2G_soluzioni/) – elenco online delle lezioni; lo genera `sito/` (in locale: `cd sito && npm install && npm run dev`).
+- [Sito delle lezioni](https://2gcompany.github.io/2G_soluzioni/) – elenco online delle lezioni; lo genera `sito/` (in locale: `cd sito && npm install && npm run dev`).

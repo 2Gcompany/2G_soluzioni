@@ -18,7 +18,7 @@ Order is dependency order. A slice with no "Blocked by" can start in parallel.
 - Given the built site, when listing the output folder, then `lezioni/yugioh/assets/video/exodia.mp4` and `lezioni/matematica/derivate/index.html` exist, and no `README.md`, `package.json`, `bun.lock`, `tsconfig.json`, `vite.config.ts`, `Dockerfile`, `compose.yaml` or `metadata.json` exists under `lezioni/`.
 - Given `lezioni/inglese/` contains only a PDF, when the site is built, then it is not listed on the home and not copied.
 - Given a lesson folder whose `index.html` has no `<title>`, when the site is built, then the entry shows the folder path (e.g. `matematica/derivate`) instead.
-- Given a push to `main` that changes a file under `lezioni/`, when the workflow finishes, then `https://panicerid.github.io/2G_soluzioni/` serves the new build (check: workflow run green, page reachable).
+- Given a push to `main` that changes a file under `lezioni/`, when the workflow finishes, then `https://2gcompany.github.io/2G_soluzioni/` serves the new build (check: workflow run green, page reachable).
 
 ### Seams
 - `findLessons(lessonsRoot)` in `sito/lib/lessons.mjs`, run against a fixture folder – covers AC1 (titles, paths), AC3, AC4. Catches discovery and title extraction; misses the copy and the deploy.
@@ -27,12 +27,12 @@ Order is dependency order. A slice with no "Blocked by" can start in parallel.
 
 ### Implementation notes
 - Build: lesson discovery as the shared one in `sito/lib/lessons.mjs` (see `docs/conventions.md`); both the copy script and the home page import it.
-- Touch: new `sito/` (Astro project: `package.json`, `astro.config.mjs` with `site: 'https://panicerid.github.io'` and `base: '/2G_soluzioni'`, `src/pages/index.astro`, `lib/lessons.mjs`, `scripts/copy-lessons.mjs`, `.gitignore` with `dist/`, `node_modules/`, `public/lezioni/`), new `.github/workflows/pages.yml`, `README.md` (one line under "Strumenti" with the site link and how to run `sito/` locally).
+- Touch: new `sito/` (Astro project: `package.json`, `astro.config.mjs` with `site: 'https://2gcompany.github.io'` and `base: '/2G_soluzioni'`, `src/pages/index.astro`, `lib/lessons.mjs`, `scripts/copy-lessons.mjs`, `.gitignore` with `dist/`, `node_modules/`, `public/lezioni/`), new `.github/workflows/pages.yml`, `README.md` (one line under "Strumenti" with the site link and how to run `sito/` locally).
 - Do not touch: anything under `lezioni/` or `progetti/`.
 - Copy: `scripts/copy-lessons.mjs` copies each lesson folder into `sito/public/lezioni/<path>/` skipping the excluded files; wire it as `prebuild` and `predev` in `sito/package.json`. Use only Node standard library (`fs.cp` with a filter), no extra dependency.
 - Title extraction: a regex on `<title>…</title>` is enough; no HTML parser dependency.
 - Workflow: `on: push` to `main` with `paths: [lezioni/**, sito/**, .github/workflows/pages.yml]` plus `workflow_dispatch`; permissions `contents: read, pages: write, id-token: write`; concurrency group `pages`; build with `withastro/action` (`path: sito`) then `actions/deploy-pages`. Use current major versions of each action.
-- Enable Pages once: `gh api -X POST repos/panicerid/2G_soluzioni/pages -f build_type=workflow` (if it already exists, `-X PUT`). Say it in the PR description.
+- Enable Pages once: `gh api -X POST repos/2Gcompany/2G_soluzioni/pages -f build_type=workflow` (if it already exists, `-X PUT`). Say it in the PR description.
 - Tests to add: `sito/lib/lessons.test.mjs` with `node --test` and a fixture tree (`sito/test/fixtures/lezioni/…`): finds nested lessons, ignores a folder with only a PDF, falls back to the folder path without `<title>`. Add `"test": "node --test"` to `sito/package.json`.
 - Done when: `npm test` and `npm run build` pass in `sito/`, and after merge the 5 lessons open from the live home (yugioh video plays, derivate formulas render).
 
