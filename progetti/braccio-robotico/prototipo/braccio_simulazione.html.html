@@ -1,0 +1,366 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Braccio robotico 3D · Simulatore</title>
+<style>
+:root{--bg:#e8edf1;--panel:#f7f9fb;--ink:#14213d;--muted:#5b6b80;--line:#c9d3de;--accent:#0f8b8d;--accent-ink:#fff;--arm:#f26b21;--warn:#c2410c;--log:#0f1722;--logtxt:#a7f3d0;--grid1:#9fb0c3;--grid2:#c9d3de}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#10161f;--panel:#182130;--ink:#e6edf5;--muted:#93a4b8;--line:#2a3648;--accent:#2ec4c6;--accent-ink:#062b2c;--arm:#ff8a4c;--warn:#fb923c;--grid1:#3a4a60;--grid2:#232f40}}
+:root[data-theme="dark"]{--bg:#10161f;--panel:#182130;--ink:#e6edf5;--muted:#93a4b8;--line:#2a3648;--accent:#2ec4c6;--accent-ink:#062b2c;--arm:#ff8a4c;--warn:#fb923c;--grid1:#3a4a60;--grid2:#232f40}
+*{box-sizing:border-box;margin:0}
+html,body{height:100%}
+body{background:var(--bg);color:var(--ink);font:15px/1.45 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;display:flex;flex-direction:column}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+header{display:flex;align-items:center;justify-content:space-between;gap:1rem;padding:.7rem 1.1rem;border-bottom:1px solid var(--line);background:var(--panel)}
+h1{font-size:1.15rem;font-weight:700;letter-spacing:-.01em}
+header p{font-size:.82rem;color:var(--muted)}
+button{font:inherit;cursor:pointer;border-radius:8px;border:1px solid var(--line);background:var(--panel);color:var(--ink);padding:.45rem .8rem}
+button:hover{border-color:var(--accent)}
+button.primary{background:var(--accent);color:var(--accent-ink);border-color:var(--accent);font-weight:600}
+button.on{background:var(--accent);color:var(--accent-ink)}
+main{flex:1;display:grid;grid-template-columns:1fr 360px;gap:1rem;padding:1rem;min-height:0}
+#stage{position:relative;border:1px solid var(--line);border-radius:12px;overflow:hidden;background:linear-gradient(var(--panel),var(--bg));min-height:360px;touch-action:none;cursor:grab}
+#stage:active{cursor:grabbing}
+#stage canvas{display:block;width:100%;height:100%}
+#hud{position:absolute;left:12px;bottom:10px;font:12px ui-monospace,Menlo,Consolas,monospace;color:var(--muted);background:color-mix(in srgb,var(--panel) 85%,transparent);padding:.35rem .6rem;border-radius:8px;border:1px solid var(--line)}
+#hint{position:absolute;right:12px;top:10px;font-size:12px;color:var(--muted)}
+aside{display:flex;flex-direction:column;gap:.9rem;overflow:auto;min-height:0}
+section{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:.9rem 1rem}
+h2{font-size:.95rem;margin-bottom:.6rem}
+.joint{display:grid;grid-template-columns:1fr auto;gap:.1rem .6rem;margin-bottom:.65rem}
+.joint label{font-weight:600;font-size:.88rem}
+.joint output{font:600 .85rem ui-monospace,Menlo,Consolas,monospace;color:var(--accent)}
+.joint input{grid-column:1/-1;width:100%;accent-color:var(--accent)}
+.row{display:flex;flex-wrap:wrap;gap:.4rem}
+#log{background:var(--log);color:var(--logtxt);font:12px/1.5 ui-monospace,Menlo,Consolas,monospace;border-radius:8px;padding:.6rem;height:130px;overflow:auto;white-space:pre-wrap}
+#poses{font-size:.85rem;color:var(--muted);margin:.5rem 0}
+#status{font-size:.82rem;color:var(--muted);margin-top:.5rem}
+#status.err{color:var(--warn)}
+details{font-size:.85rem}
+summary{cursor:pointer;font-weight:600}
+pre{background:var(--log);color:#e2e8f0;font:11.5px/1.5 ui-monospace,Menlo,Consolas,monospace;padding:.7rem;border-radius:8px;overflow:auto;margin-top:.5rem}
+@media (max-width:900px){main{grid-template-columns:1fr}#stage{height:55vh}}
+@media (prefers-reduced-motion:reduce){*{scroll-behavior:auto!important}}
+</style>
+</head>
+<body>
+<header>
+  <div>
+    <h1>Braccio robotico 3D</h1>
+    <p>Simulatore a 5 servo con comandi seriali per Arduino</p>
+  </div>
+  <button id="theme" aria-label="Cambia tema chiaro o scuro">Tema</button>
+</header>
+
+<main>
+  <div id="stage" aria-label="Vista 3D del braccio: trascina per ruotare, rotella per lo zoom">
+    <div id="hint">Trascina per ruotare · rotella per lo zoom</div>
+    <div id="hud">Pinza: x 0.0 · y 0.0 · z 0.0</div>
+  </div>
+
+  <aside>
+    <section>
+      <h2>Giunti</h2>
+      <div id="joints"></div>
+      <div class="row" id="presets"></div>
+    </section>
+
+    <section>
+      <h2>Sequenza</h2>
+      <div class="row">
+        <button id="savePose">Salva posa</button>
+        <button id="play" class="primary">Riproduci</button>
+        <button id="clearPoses">Svuota</button>
+      </div>
+      <div id="poses">Nessuna posa salvata. Muovi i giunti e premi "Salva posa".</div>
+    </section>
+
+    <section>
+      <h2>Monitor seriale</h2>
+      <div id="log" role="log" aria-live="off"></div>
+      <div class="row" style="margin-top:.6rem">
+        <button id="connect">Collega Arduino</button>
+        <button id="clearLog">Pulisci</button>
+      </div>
+      <div id="status">Non collegato: i comandi compaiono solo qui sopra.</div>
+    </section>
+
+    <section>
+      <details>
+        <summary>Sketch Arduino di esempio</summary>
+        <pre id="sketch"></pre>
+      </details>
+    </section>
+  </aside>
+</main>
+
+<script>
+// ---------- Configurazione dei giunti (adatta a tuo braccio) ----------
+// id = numero servo nel comando "S<id>:<angolo>"; 90 = posizione neutra
+const JOINTS = [
+  {id:1, name:"Base",   min:0, max:180, home:90},
+  {id:2, name:"Spalla", min:15, max:165, home:90},
+  {id:3, name:"Gomito", min:15, max:165, home:90},
+  {id:4, name:"Polso",  min:0, max:180, home:90},
+  {id:5, name:"Pinza",  min:0, max:90,  home:60}
+];
+const PRESETS = {
+  "Posizione base":[90,90,90,90,60],
+  "Raccogli":[90,60,135,110,80],
+  "Alza":[90,120,60,90,10],
+  "Saluta":[135,100,80,60,60]
+};
+const L1=2.3, L2=2.0, L3=0.9;           // lunghezze dei segmenti
+const D2R=Math.PI/180;
+
+const target=JOINTS.map(j=>j.home), cur=JOINTS.map(j=>j.home);
+
+// ---------- Interfaccia ----------
+const jointsEl=document.getElementById("joints"), sliders=[], outs=[];
+JOINTS.forEach((j,i)=>{
+  const d=document.createElement("div"); d.className="joint";
+  d.innerHTML=`<label for="s${i}">${j.name} <small style="color:var(--muted);font-weight:400">(S${j.id})</small></label><output id="o${i}">${j.home}°</output>
+  <input id="s${i}" type="range" min="${j.min}" max="${j.max}" value="${j.home}">`;
+  jointsEl.appendChild(d);
+  const s=d.querySelector("input"), o=d.querySelector("output");
+  sliders.push(s); outs.push(o);
+  s.addEventListener("input",()=>setTarget(i,+s.value));
+});
+const presetsEl=document.getElementById("presets");
+Object.keys(PRESETS).forEach(n=>{
+  const b=document.createElement("button"); b.textContent=n;
+  b.onclick=()=>{stopPlay();PRESETS[n].forEach((v,i)=>setTarget(i,v));};
+  presetsEl.appendChild(b);
+});
+
+function setTarget(i,v){
+  v=Math.max(JOINTS[i].min,Math.min(JOINTS[i].max,Math.round(v)));
+  if(target[i]===v && +sliders[i].value===v) return;
+  target[i]=v; sliders[i].value=v; outs[i].textContent=v+"°";
+  send(`S${JOINTS[i].id}:${v}`);
+}
+
+// ---------- Monitor seriale e Web Serial ----------
+const logEl=document.getElementById("log"), statusEl=document.getElementById("status");
+let writer=null, port=null; const enc=new TextEncoder();
+function log(t){
+  logEl.textContent+=t+"\n";
+  const lines=logEl.textContent.split("\n"); if(lines.length>60) logEl.textContent=lines.slice(-50).join("\n");
+  logEl.scrollTop=logEl.scrollHeight;
+}
+function send(cmd){
+  log("→ "+cmd);
+  if(writer) writer.write(enc.encode(cmd+"\n")).catch(e=>setStatus("Errore di scrittura: "+e.message,true));
+}
+function setStatus(t,err){statusEl.textContent=t;statusEl.className=err?"err":"";}
+document.getElementById("clearLog").onclick=()=>logEl.textContent="";
+document.getElementById("connect").onclick=async()=>{
+  const btn=document.getElementById("connect");
+  if(writer){ try{writer.releaseLock();await port.close();}catch(e){} writer=null;port=null;btn.textContent="Collega Arduino";btn.classList.remove("on");setStatus("Scollegato.");return;}
+  if(!("serial" in navigator)){setStatus("Il browser non supporta la porta seriale. Usa Chrome o Edge su computer, da localhost o https.",true);return;}
+  try{
+    port=await navigator.serial.requestPort();
+    await port.open({baudRate:9600});
+    writer=port.writable.getWriter();
+    btn.textContent="Scollega";btn.classList.add("on");
+    setStatus("Collegato a 9600 baud: ogni movimento viene inviato al braccio.");
+    JOINTS.forEach((j,i)=>send(`S${j.id}:${target[i]}`));
+  }catch(e){setStatus("Collegamento non riuscito: "+e.message,true);}
+};
+
+// ---------- Sequenza di pose ----------
+let poses=[], playing=false;
+const posesEl=document.getElementById("poses"), playBtn=document.getElementById("play");
+function showPoses(){posesEl.textContent=poses.length?`${poses.length} pose: `+poses.map((p,i)=>`${i+1}`).join(" → "):'Nessuna posa salvata. Muovi i giunti e premi "Salva posa".';}
+document.getElementById("savePose").onclick=()=>{poses.push([...target]);showPoses();};
+document.getElementById("clearPoses").onclick=()=>{stopPlay();poses=[];showPoses();};
+function stopPlay(){playing=false;playBtn.textContent="Riproduci";playBtn.classList.add("primary");}
+const wait=ms=>new Promise(r=>setTimeout(r,ms));
+playBtn.onclick=async()=>{
+  if(playing){stopPlay();return;}
+  if(poses.length<2){posesEl.textContent="Salva almeno due pose per riprodurre una sequenza.";return;}
+  playing=true;playBtn.textContent="Ferma";playBtn.classList.remove("primary");
+  while(playing){
+    for(const p of poses){
+      if(!playing)break;
+      p.forEach((v,i)=>setTarget(i,v));
+      await wait(250);
+      while(playing && cur.some((c,i)=>Math.abs(c-target[i])>1)) await wait(60);
+      await wait(350);
+    }
+  }
+};
+
+// ---------- Sketch di esempio ----------
+document.getElementById("sketch").textContent=
+`#include <Servo.h>
+Servo s[5];
+const int pin[5] = {3, 5, 6, 9, 10};
+
+void setup() {
+  Serial.begin(9600);
+  for (int i = 0; i < 5; i++) { s[i].attach(pin[i]); s[i].write(90); }
+}
+
+void loop() {
+  if (Serial.available()) {
+    String c = Serial.readStringUntil('\\n');  // es. "S2:120"
+    int id = c.substring(1, c.indexOf(':')).toInt();
+    int a  = c.substring(c.indexOf(':') + 1).toInt();
+    if (id >= 1 && id <= 5) s[id - 1].write(constrain(a, 0, 180));
+  }
+}`;
+
+// ---------- Motore 3D minimale su canvas 2D (nessuna libreria esterna) ----------
+const stage=document.getElementById("stage");
+const cv=document.createElement("canvas");
+Object.assign(cv.style,{position:"absolute",inset:"0",width:"100%",height:"100%"});
+stage.prepend(cv);
+const ctx=cv.getContext("2d");
+let W=0,H=0;
+function resize(){
+  const r=stage.getBoundingClientRect(), d=Math.min(devicePixelRatio||1,2);
+  W=r.width; H=r.height; cv.width=W*d; cv.height=H*d; ctx.setTransform(d,0,0,d,0,0);
+}
+new ResizeObserver(resize).observe(stage); resize();
+
+const css=n=>getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+const hex=h=>{h=h.replace("#","");if(h.length===3)h=h.split("").map(c=>c+c).join("");return [0,2,4].map(i=>parseInt(h.substr(i,2),16));};
+let colArm=[242,107,33], colGrid="#c9d3de", colGrid2="#9fb0c3";
+const colJoint=[43,47,54];
+function buildGrid(){ colArm=hex(css("--arm")); colGrid=css("--grid2"); colGrid2=css("--grid1"); }
+buildGrid();
+
+// Matrici 4x4 (riga per riga)
+const M={
+  id:()=>[1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1],
+  mul(a,b){const r=new Array(16).fill(0);for(let i=0;i<4;i++)for(let j=0;j<4;j++){let s=0;for(let k=0;k<4;k++)s+=a[i*4+k]*b[k*4+j];r[i*4+j]=s;}return r;},
+  tr(x,y,z){const m=M.id();m[3]=x;m[7]=y;m[11]=z;return m;},
+  rotY(a){const c=Math.cos(a),s=Math.sin(a);return [c,0,s,0,0,1,0,0,-s,0,c,0,0,0,0,1];},
+  rotZ(a){const c=Math.cos(a),s=Math.sin(a);return [c,-s,0,0,s,c,0,0,0,0,1,0,0,0,0,1];},
+  pt(m,p){return [m[0]*p[0]+m[1]*p[1]+m[2]*p[2]+m[3],m[4]*p[0]+m[5]*p[1]+m[6]*p[2]+m[7],m[8]*p[0]+m[9]*p[1]+m[10]*p[2]+m[11]];}
+};
+const sub=(a,b)=>[a[0]-b[0],a[1]-b[1],a[2]-b[2]];
+const dot=(a,b)=>a[0]*b[0]+a[1]*b[1]+a[2]*b[2];
+const cross=(a,b)=>[a[1]*b[2]-a[2]*b[1],a[2]*b[0]-a[0]*b[2],a[0]*b[1]-a[1]*b[0]];
+const norm=a=>{const l=Math.hypot(a[0],a[1],a[2])||1;return [a[0]/l,a[1]/l,a[2]/l];};
+
+// Forme: scatola e cilindro (asse y oppure z), con offset
+function boxMesh(w,h,d,ox=0,oy=0,oz=0){
+  const x=w/2,y=h/2,z=d/2;
+  const v=[[-x,-y,-z],[x,-y,-z],[x,y,-z],[-x,y,-z],[-x,-y,z],[x,-y,z],[x,y,z],[-x,y,z]].map(p=>[p[0]+ox,p[1]+oy,p[2]+oz]);
+  return {v,f:[[0,1,2,3],[4,5,6,7],[0,1,5,4],[3,2,6,7],[0,3,7,4],[1,2,6,5]],c:[ox,oy,oz]};
+}
+function cylMesh(r,h,axis,ox=0,oy=0,oz=0,n=20){
+  const v=[],f=[];
+  for(const s of [-1,1])for(let i=0;i<n;i++){
+    const a=i/n*2*Math.PI,c=r*Math.cos(a),q=r*Math.sin(a);
+    v.push(axis==="y"?[c+ox,s*h/2+oy,q+oz]:[c+ox,q+oy,s*h/2+oz]);
+  }
+  for(let i=0;i<n;i++)f.push([i,(i+1)%n,n+(i+1)%n,n+i]);
+  const ids=[...Array(n).keys()]; f.push(ids,ids.map(i=>i+n));
+  return {v,f,c:[ox,oy,oz]};
+}
+const mBase=cylMesh(1.1,.35,"y",0,.175,0), mTur=cylMesh(.8,.5,"y",0,.25,0);
+const mSh=cylMesh(.38,1.1,"z"), mUp=boxMesh(.5,L1,.55,0,L1/2,0);
+const mEl=cylMesh(.34,.95,"z"), mFo=boxMesh(.42,L2,.46,0,L2/2,0);
+const mWr=cylMesh(.27,.8,"z"), mHa=boxMesh(.5,L3,.5,0,L3/2,0);
+const mPalm=boxMesh(.2,.12,.9,0,-.02,0), mFin=boxMesh(.14,.7,.14,0,.35,0);
+
+function buildScene(){
+  const T1=M.mul(M.tr(0,.35,0),M.rotY(-(cur[0]-90)*D2R));
+  const T2=M.mul(M.mul(T1,M.tr(0,.55,0)),M.rotZ(-(cur[1]-90)*D2R));
+  const T3=M.mul(M.mul(T2,M.tr(0,L1,0)),M.rotZ(-(cur[2]-90)*D2R));
+  const T4=M.mul(M.mul(T3,M.tr(0,L2,0)),M.rotZ(-(cur[3]-90)*D2R));
+  const T5=M.mul(T4,M.tr(0,L3,0));
+  const g=.12+(cur[4]/90)*.38;
+  const TL=M.mul(T5,M.tr(0,0,g)), TR=M.mul(T5,M.tr(0,0,-g));
+  return {tip:M.pt(T5,[0,0,0]),parts:[
+    [mBase,M.id(),colJoint],[mTur,T1,colArm],[mSh,T2,colJoint],[mUp,T2,colArm],
+    [mEl,T3,colJoint],[mFo,T3,colArm],[mWr,T4,colJoint],[mHa,T4,colArm],
+    [mPalm,T5,colJoint],[mFin,TL,colJoint],[mFin,TR,colJoint]]};
+}
+
+// ---------- Camera orbitale ----------
+let yaw=.8, pitch=.45, dist=11; const focus=[0,2.2,0];
+let drag=null;
+stage.addEventListener("pointerdown",e=>{drag={x:e.clientX,y:e.clientY};stage.setPointerCapture(e.pointerId);document.getElementById("hint").style.display="none";});
+stage.addEventListener("pointermove",e=>{
+  if(!drag)return;
+  yaw-=(e.clientX-drag.x)*.008; pitch=Math.max(.05,Math.min(1.45,pitch+(e.clientY-drag.y)*.008));
+  drag={x:e.clientX,y:e.clientY};
+});
+stage.addEventListener("pointerup",()=>drag=null);
+stage.addEventListener("wheel",e=>{e.preventDefault();dist=Math.max(7,Math.min(20,dist+e.deltaY*.01));},{passive:false});
+
+const LIGHT=norm([.4,.8,.5]);
+function draw(S){
+  ctx.clearRect(0,0,W,H);
+  const cp=[focus[0]+dist*Math.cos(pitch)*Math.sin(yaw),focus[1]+dist*Math.sin(pitch),focus[2]+dist*Math.cos(pitch)*Math.cos(yaw)];
+  const f=norm(sub(focus,cp)), r=norm(cross(f,[0,1,0])), u=cross(r,f);
+  const foc=Math.min(W,H)*1.25;
+  const proj=p=>{const d=sub(p,cp),z=dot(d,f);return [W/2+foc*dot(d,r)/z,H/2-foc*dot(d,u)/z,z];};
+
+  // pavimento
+  ctx.lineWidth=1;
+  for(const [col,step] of [[colGrid,1],[colGrid2,4]]){
+    ctx.strokeStyle=col; ctx.beginPath();
+    for(let i=-4;i<=4;i+=step){
+      for(const [p,q] of [[[i,0,-4],[i,0,4]],[[-4,0,i],[4,0,i]]]){
+        const a=proj(p),b=proj(q);
+        if(a[2]>.1&&b[2]>.1){ctx.moveTo(a[0],a[1]);ctx.lineTo(b[0],b[1]);}
+      }
+    }
+    ctx.stroke();
+  }
+
+  // facce dell'intero braccio, ordinate dal fondo
+  const faces=[];
+  for(const [m,T,col] of S.parts){
+    const wv=m.v.map(p=>M.pt(T,p)), cw=M.pt(T,m.c);
+    for(const fi of m.f){
+      const pts=fi.map(i=>wv[i]);
+      let n=norm(cross(sub(pts[1],pts[0]),sub(pts[2],pts[0])));
+      const ctr=[0,1,2].map(k=>pts.reduce((s,p)=>s+p[k],0)/pts.length);
+      if(dot(n,sub(ctr,cw))<0) n=[-n[0],-n[1],-n[2]];
+      if(dot(n,sub(cp,ctr))<=0) continue;
+      const pp=pts.map(proj);
+      faces.push({pp,z:pp.reduce((s,p)=>s+p[2],0)/pp.length,k:.38+.62*Math.max(0,dot(n,LIGHT)),col});
+    }
+  }
+  faces.sort((a,b)=>b.z-a.z);
+  ctx.lineJoin="round"; ctx.lineWidth=1; ctx.strokeStyle="rgba(0,0,0,.28)";
+  for(const fc of faces){
+    ctx.beginPath(); fc.pp.forEach((p,i)=>i?ctx.lineTo(p[0],p[1]):ctx.moveTo(p[0],p[1])); ctx.closePath();
+    ctx.fillStyle=`rgb(${fc.col.map(c=>Math.round(c*fc.k)).join(",")})`;
+    ctx.fill(); ctx.stroke();
+  }
+}
+
+// ---------- Ciclo di animazione ----------
+const hud=document.getElementById("hud");
+function frame(){
+  for(let i=0;i<cur.length;i++){
+    const d=target[i]-cur[i];
+    cur[i]=Math.abs(d)>.05?cur[i]+d*.12:target[i];
+  }
+  const S=buildScene();
+  draw(S);
+  hud.textContent=`Pinza: x ${S.tip[0].toFixed(1)} · y ${S.tip[1].toFixed(1)} · z ${S.tip[2].toFixed(1)}`;
+  requestAnimationFrame(frame);
+}
+frame();
+
+// ---------- Tema ----------
+const root=document.documentElement;
+document.getElementById("theme").onclick=()=>{
+  const dark=(root.dataset.theme||(matchMedia("(prefers-color-scheme:dark)").matches?"dark":"light"))==="dark";
+  root.dataset.theme=dark?"light":"dark"; buildGrid();
+};
+matchMedia("(prefers-color-scheme:dark)").addEventListener("change",()=>setTimeout(buildGrid,0));
+
+log("Simulatore pronto. Muovi uno slider per vedere il comando.");
+</script>
+</body>
+</html>
