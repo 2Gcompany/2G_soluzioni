@@ -10,11 +10,6 @@ View your app in AI Studio: https://ai.studio/apps/9ecfcd52-1067-4046-8b7b-03a8e
 
 ## Run Locally
 
-**Prerequisites:**  Node.js
-
-
-1. Install dependencies:
-   `npm install`
-2. Set the `GEMINI_API_KEY` in [.env.local](.env.local) to your Gemini API key
-3. Run the app:
-   `npm run dev`
+- [Backup Foto (rsync-ui)](progetti/rsync-ui/README.md) – interfaccia semplice per copiare le foto
+  da scheda SD o fotocamera a un disco di backup; prototipo cliccabile.
+- [Braccio robotico](progetti/braccio-robotico/README.md) – simulazione di un braccio a tre giunti con pinza e comandi seriali per Arduino.
