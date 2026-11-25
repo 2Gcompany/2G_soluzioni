@@ -6,7 +6,7 @@ Simulazione web di un braccio robotico a tre giunti con pinza, pensata per una l
 
 ## Stato
 
-`prototipo/index.html` è un unico file HTML senza dipendenze. Contiene una prima versione delle fette 1, 2, 3, 4 e 6. Mancano la fetta 5 (limiti dei giunti) e la parte di accessibilità della definizione di fatto.
+`prototipo/braccio_simulazione.html` è un unico file HTML senza dipendenze. Contiene una prima versione delle fette 1, 2, 3, 4 e 6. Mancano la fetta 5 (limiti dei giunti) e la parte di accessibilità della definizione di fatto.
 
 ## Ordine di inizio
 

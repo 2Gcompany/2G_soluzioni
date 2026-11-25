@@ -8,9 +8,9 @@ Pagina web per capire come si muove un braccio robotico a tre giunti con pinza. 
 docker compose up -d --build
 ```
 
-Poi apri [http://localhost:8080](http://localhost:8080). Per fermare tutto: `docker compose down`.
+Poi apri [http://localhost:8080/braccio_simulazione.html](http://localhost:8080/braccio_simulazione.html). Per fermare tutto: `docker compose down`.
 
-Senza Docker: fai doppio clic su `prototipo/index.html`.
+Senza Docker: fai doppio clic su `prototipo/braccio_simulazione.html`.
 
 ## Dai cursori ai comandi (parte didattica)
 
@@ -23,7 +23,7 @@ Senza Docker: fai doppio clic su `prototipo/index.html`.
 
 Esempio di riga inviata all'Arduino: `S90 G90 P90 C40`. La riga si vede nella sezione «Per curiosi» della simulazione.
 
-> Le lettere e i valori sono un esempio. Se il tuo sketch Arduino usa un altro formato, basta cambiare la funzione che prepara il testo in `prototipo/index.html`.
+> Le lettere e i valori sono un esempio. Se il tuo sketch Arduino usa un altro formato, basta cambiare la funzione che prepara il testo in `prototipo/braccio_simulazione.html`.
 
 ## Come si calcola la posizione della pinza
 
@@ -42,4 +42,4 @@ La simulazione è **solo grafica**: nessun comando viene inviato a un braccio ve
 
 ## Cosa contiene
 
-`prototipo/index.html` (la simulazione), `Dockerfile` e `compose.yaml` (nginx non-root, filesystem in sola lettura, solo `127.0.0.1:8080`).
+`prototipo/braccio_simulazione.html` (la simulazione), `Dockerfile` e `compose.yaml` (nginx non-root, filesystem in sola lettura, solo `127.0.0.1:8080`).
