@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Guida Pokémon: tipi, statistiche e mosse</title>
+<style>
+:root{--bg:#f6f7fb;--card:#fff;--text:#1d2433;--muted:#5b6579;--accent:#e63946;--line:#e1e5ee}
+@media (prefers-color-scheme:dark){:root{--bg:#12151c;--card:#1b2030;--text:#eef1f7;--muted:#9aa5ba;--line:#2c3348}}
+*{box-sizing:border-box}
+body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;background:var(--bg);color:var(--text);line-height:1.6}
+header{background:linear-gradient(135deg,#e63946,#f4a261);color:#fff;padding:40px 16px;text-align:center}
+header h1{margin:0 0 8px;font-size:clamp(1.6rem,5vw,2.6rem)}
+header p{margin:0;opacity:.95}
+nav{position:sticky;top:0;background:var(--card);border-bottom:1px solid var(--line);display:flex;gap:4px;overflow-x:auto;padding:8px 12px;z-index:5}
+nav a{white-space:nowrap;text-decoration:none;color:var(--text);padding:6px 12px;border-radius:999px;font-size:.9rem}
+nav a:hover{background:var(--line)}
+main{max-width:980px;margin:0 auto;padding:16px}
+section{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:20px;margin:18px 0}
+h2{margin-top:0;border-left:5px solid var(--accent);padding-left:10px}
+h3{margin-bottom:4px}
+.muted{color:var(--muted)}
+.box{background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:12px 14px;margin:10px 0}
+code,.formula{background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:2px 6px;font-family:ui-monospace,Menlo,Consolas,monospace;font-size:.9em}
+.formula{display:block;padding:10px;margin:8px 0;overflow-x:auto}
+.type{display:inline-block;color:#fff;font-weight:600;font-size:.8rem;padding:2px 10px;border-radius:999px;margin:2px;text-shadow:0 1px 1px rgba(0,0,0,.35)}
+select,input{font:inherit;padding:6px 8px;border:1px solid var(--line);border-radius:8px;background:var(--card);color:var(--text);max-width:100%}
+label{display:inline-block;margin:6px 10px 6px 0}
+table{border-collapse:collapse;width:100%;font-size:.9rem}
+th,td{border:1px solid var(--line);padding:6px 8px;text-align:center}
+.scroll{overflow-x:auto}
+.row{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:6px 0}
+.row b{min-width:70px}
+.x4{background:#c1121f;color:#fff}.x2{background:#2a9d4a;color:#fff}.h{background:#e9a23b;color:#000}.q{background:#8d5524;color:#fff}.z{background:#333;color:#fff}
+.big{font-size:1.6rem;font-weight:700}
+ul{padding-left:20px}
+footer{text-align:center;color:var(--muted);padding:24px 16px;font-size:.85rem}
+.cell2{background:#2a9d4a;color:#fff}.cellh{background:#e9a23b;color:#000}.cell0{background:#333;color:#fff}
+</style>
+</head>
+<body>
+<header>
+  <h1>⚡ Guida Pokémon: impara a giocare</h1>
+  <p>Tipi, doppie debolezze (x4), superefficacia, statistiche, nature, mosse fisiche e speciali</p>
+</header>
+<nav>
+  <a href="#basi">Le basi</a>
+  <a href="#tipi">Tipi</a>
+  <a href="#doppi">Doppi tipi e x4</a>
+  <a href="#tabella">Tabella tipi</a>
+  <a href="#statistiche">Statistiche</a>
+  <a href="#nature">Nature</a>
+  <a href="#mosse">Mosse</a>
+  <a href="#danno">Danno</a>
+  <a href="#consigli">Consigli</a>
+</nav>
+<main>
+
+<section id="basi">
+  <h2>1. Le basi di un combattimento</h2>
+  <p>Ogni Pokémon ha uno o due <b>tipi</b>, sei <b>statistiche</b>, una <b>natura</b>, un'<b>abilità</b> e fino a quattro <b>mosse</b>. Vince chi mette K.O. tutti i Pokémon avversari. Le cose da guardare in ogni turno sono tre:</p>
+  <ul>
+    <li><b>Chi è più veloce?</b> Chi ha più Velocità agisce per primo (salvo mosse con priorità).</li>
+    <li><b>Che tipo ha il bersaglio?</b> Il tipo della mossa contro il tipo del difensore decide il moltiplicatore di danno.</li>
+    <li><b>Mossa fisica o speciale?</b> Decide quali statistiche contano (Attacco/Difesa oppure Att. Sp./Dif. Sp.).</li>
+  </ul>
+</section>
+
+<section id="tipi">
+  <h2>2. I 18 tipi</h2>
+  <p>Ogni mossa ha un tipo. Contro un tipo difendente il danno può essere:</p>
+  <div class="row"><span class="type x2" style="background:#2a9d4a">x2 superefficace</span><span class="type" style="background:#6c757d">x1 normale</span><span class="type" style="background:#e9a23b;color:#000;text-shadow:none">x0,5 poco efficace</span><span class="type" style="background:#222">x0 nessun effetto</span></div>
+  <div id="typeList"></div>
+  <div class="box"><b>Immunità importanti:</b> Normale e Lotta non colpiscono Spettro · Elettro non colpisce Terra · Terra non colpisce Volante · Psico non colpisce Buio · Veleno non colpisce Acciaio · Drago non colpisce Folletto · Spettro non colpisce Normale.</div>
+</section>
+
+<section id="doppi">
+  <h2>3. Doppi tipi: debolezze x4 e resistenze x0,25</h2>
+  <p>Quando un Pokémon ha <b>due tipi</b>, i moltiplicatori si <b>moltiplicano tra loro</b>:</p>
+  <ul>
+    <li>x2 · x2 = <b>x4</b> (debolezza doppia)</li>
+    <li>x2 · x0,5 = <b>x1</b> (si annullano)</li>
+    <li>x0,5 · x0,5 = <b>x0,25</b> (resistenza doppia)</li>
+    <li>qualsiasi cosa · x0 = <b>x0</b> (l'immunità vince sempre)</li>
+  </ul>
+  <div class="box"><b>Esempio:</b> Charizard è Fuoco/Volante. Roccia è superefficace sia su Fuoco (x2) sia su Volante (x2) → <b>x4</b>. Erba, invece, è poco efficace sia su Fuoco (x0,5) sia su Volante (x0,5) → <b>x0,25</b>. Terra è x2 su Fuoco ma x0 su Volante → <b>x0</b>, perché l'immunità vince sempre. Prova tu qui sotto 👇</div>
+
+  <h3>Calcolatore debolezze</h3>
+  <label>Tipo 1 <select id="t1"></select></label>
+  <label>Tipo 2 <select id="t2"></select></label>
+  <div id="result"></div>
+</section>
+
+<section id="tabella">
+  <h2>4. Tabella completa dei tipi</h2>
+  <p class="muted">Righe = tipo della mossa (attacco). Colonne = tipo del difensore. Celle vuote = x1.</p>
+  <div class="scroll"><table id="chart"></table></div>
+</section>
+
+<section id="statistiche">
+  <h2>5. Le statistiche</h2>
+  <p>Sei statistiche:</p>
+  <ul>
+    <li><b>PS</b> (HP): punti salute.</li>
+    <li><b>Attacco</b>: potenza delle mosse fisiche.</li>
+    <li><b>Difesa</b>: resistenza alle mosse fisiche.</li>
+    <li><b>Att. Sp.</b>: potenza delle mosse speciali.</li>
+    <li><b>Dif. Sp.</b>: resistenza alle mosse speciali.</li>
+    <li><b>Velocità</b>: chi muove per primo.</li>
+  </ul>
+  <h3>Da cosa dipendono</h3>
+  <ul>
+    <li><b>Statistica base</b>: fissa per ogni specie.</li>
+    <li><b>IV</b> (0–31): "genetica" individuale. Il massimo è 31.</li>
+    <li><b>EV</b> (0–252 per stat, 510 totali): si guadagnano sconfiggendo Pokémon o con allenamenti; ogni 4 EV = +1 punto a livello 100.</li>
+    <li><b>Livello</b> e <b>natura</b>.</li>
+  </ul>
+  <div class="formula">PS = ⌊(2·Base + IV + ⌊EV/4⌋) · Liv / 100⌋ + Liv + 10</div>
+  <div class="formula">Altra stat = ⌊(⌊(2·Base + IV + ⌊EV/4⌋) · Liv / 100⌋ + 5) · Natura⌋</div>
+  <p class="muted">Natura: x1,1 sulla statistica aumentata, x0,9 su quella diminuita.</p>
+
+  <h3>Calcolatore statistiche</h3>
+  <label>Statistica <select id="cStat"><option value="0">PS</option><option value="1">Attacco</option><option value="2">Difesa</option><option value="3">Velocità</option><option value="4">Att. Sp.</option><option value="5">Dif. Sp.</option></select></label>
+  <label>Base <input id="cBase" type="number" value="100" min="1" max="255" style="width:80px"></label>
+  <label>IV <input id="cIV" type="number" value="31" min="0" max="31" style="width:70px"></label>
+  <label>EV <input id="cEV" type="number" value="252" min="0" max="252" style="width:80px"></label>
+  <label>Livello <input id="cLv" type="number" value="50" min="1" max="100" style="width:70px"></label>
+  <label>Natura <select id="cNat"></select></label>
+  <div class="box">Valore finale: <span class="big" id="cOut">–</span></div>
+</section>
+
+<section id="nature">
+  <h2>6. Le nature</h2>
+  <p>Ogni natura <b>aumenta del 10%</b> una statistica e ne <b>diminuisce del 10%</b> un'altra (PS esclusi). Cinque nature sono <b>neutre</b> (sulla diagonale). Scegli la natura in base al ruolo: un attaccante fisico vuole +Att e −Att.Sp.; uno speciale fa il contrario.</p>
+  <div class="scroll"><table id="natTable"></table></div>
+  <p class="muted">Righe = statistica aumentata (+). Colonne = statistica diminuita (−).</p>
+  <div class="box"><b>Scelte tipiche:</b> Decisa (+Att −Att.Sp.) o Allegra (+Vel −Att.Sp.) per attaccanti fisici · Modesta (+Att.Sp. −Att.) o Timida (+Vel −Att.) per speciali · Sicura (+Dif −Att.) o Calma (+Dif.Sp. −Att.) per difensori.</div>
+</section>
+
+<section id="mosse">
+  <h2>7. Mosse fisiche, speciali e di stato</h2>
+  <p>Dalla quarta generazione ogni <b>singola mossa</b> appartiene a una categoria (prima dipendeva dal tipo):</p>
+  <table>
+    <tr><th>Categoria</th><th>Usa (attaccante)</th><th>Contro (difensore)</th><th>Esempi</th></tr>
+    <tr><td><b>Fisica</b></td><td>Attacco</td><td>Difesa</td><td>Terremoto, Cascata, Pietrataglio</td></tr>
+    <tr><td><b>Speciale</b></td><td>Att. Sp.</td><td>Dif. Sp.</td><td>Lanciafiamme, Surf, Geloraggio</td></tr>
+    <tr><td><b>Stato</b></td><td colspan="2">Non fa danno diretto</td><td>Danzaspada, Protezione, Tossina</td></tr>
+  </table>
+  <div class="box"><b>Regola d'oro:</b> guarda sempre la categoria della mossa, non il tipo. Un Pokémon con Attacco alto e Att. Sp. bassa deve usare mosse fisiche.</div>
+  <h3>Altri concetti utili</h3>
+  <ul>
+    <li><b>STAB</b> (Same Type Attack Bonus): se la mossa è dello stesso tipo del Pokémon che la usa, il danno è <b>x1,5</b>.</li>
+    <li><b>Priorità</b>: alcune mosse (es. Azione Rapida) agiscono prima, a prescindere dalla Velocità.</li>
+    <li><b>Colpo critico</b>: danno x1,5 e ignora i potenziamenti difensivi dell'avversario.</li>
+    <li><b>Scottatura</b>: dimezza il danno delle mosse fisiche del Pokémon scottato.</li>
+    <li><b>Precisione</b>: molte mosse forti non colpiscono sempre.</li>
+    <li><b>Strumenti e abilità</b> cambiano i valori: leggi sempre cosa fanno.</li>
+  </ul>
+</section>
+
+<section id="danno">
+  <h2>8. Come si calcola il danno</h2>
+  <div class="formula">Danno = ( ( (2·Liv/5 + 2) · Potenza · Att/Dif ) / 50 + 2 ) · Modificatori</div>
+  <p>I <b>modificatori</b> includono: STAB (x1,5), efficacia del tipo (x4 / x2 / x1 / x0,5 / x0,25 / x0), critico (x1,5), casualità (da x0,85 a x1,00), clima, abilità, strumenti e scottatura.</p>
+  <p>Per questo conta tantissimo il tipo: una mossa x4 con STAB fa fino a <b>sei volte</b> il danno di una mossa neutra senza STAB.</p>
+</section>
+
+<section id="consigli">
+  <h2>9. Consigli per iniziare</h2>
+  <ul>
+    <li>Impara a memoria le <b>immunità</b> e le debolezze più comuni dei tuoi Pokémon.</li>
+    <li>Costruisci una squadra <b>varia</b>: copri molti tipi in attacco e non avere debolezze x4 in comune.</li>
+    <li>Allena <b>le statistiche giuste</b> (EV su ciò che usa il tuo Pokémon) e scegli la natura corretta.</li>
+    <li>Combina almeno una mossa STAB con mosse di copertura di altri tipi.</li>
+    <li>Pensa sempre: <b>chi è più veloce?</b> Spesso decide il combattimento.</li>
+    <li>Usa mosse di stato (veleno, paralisi, danzaspada) quando danno vantaggio.</li>
+  </ul>
+</section>
+
+</main>
+<footer>Guida didattica non ufficiale. Pokémon è un marchio di Nintendo / Game Freak / The Pokémon Company.</footer>
+
+<script>
+const T=["Normale","Fuoco","Acqua","Elettro","Erba","Ghiaccio","Lotta","Veleno","Terra","Volante","Psico","Coleottero","Roccia","Spettro","Drago","Buio","Acciaio","Folletto"];
+const C={Normale:"#a8a77a",Fuoco:"#ee8130",Acqua:"#6390f0",Elettro:"#f7d02c",Erba:"#7ac74c",Ghiaccio:"#96d9d6",Lotta:"#c22e28",Veleno:"#a33ea1",Terra:"#e2bf65",Volante:"#a98ff3",Psico:"#f95587",Coleottero:"#a6b91a",Roccia:"#b6a136",Spettro:"#735797",Drago:"#6f35fc",Buio:"#705746",Acciaio:"#b7b7ce",Folletto:"#d685ad"};
+// efficacia: attaccante -> {difensore: moltiplicatore}
+const E={
+Normale:{Roccia:.5,Spettro:0,Acciaio:.5},
+Fuoco:{Fuoco:.5,Acqua:.5,Erba:2,Ghiaccio:2,Coleottero:2,Roccia:.5,Drago:.5,Acciaio:2},
+Acqua:{Fuoco:2,Acqua:.5,Erba:.5,Terra:2,Roccia:2,Drago:.5},
+Elettro:{Acqua:2,Elettro:.5,Erba:.5,Terra:0,Volante:2,Drago:.5},
+Erba:{Fuoco:.5,Acqua:2,Erba:.5,Veleno:.5,Terra:2,Volante:.5,Coleottero:.5,Roccia:2,Drago:.5,Acciaio:.5},
+Ghiaccio:{Fuoco:.5,Acqua:.5,Erba:2,Ghiaccio:.5,Terra:2,Volante:2,Drago:2,Acciaio:.5},
+Lotta:{Normale:2,Ghiaccio:2,Veleno:.5,Volante:.5,Psico:.5,Coleottero:.5,Roccia:2,Spettro:0,Buio:2,Acciaio:2,Folletto:.5},
+Veleno:{Erba:2,Veleno:.5,Terra:.5,Roccia:.5,Spettro:.5,Acciaio:0,Folletto:2},
+Terra:{Fuoco:2,Elettro:2,Erba:.5,Veleno:2,Volante:0,Coleottero:.5,Roccia:2,Acciaio:2},
+Volante:{Elettro:.5,Erba:2,Lotta:2,Coleottero:2,Roccia:.5,Acciaio:.5},
+Psico:{Lotta:2,Veleno:2,Psico:.5,Buio:0,Acciaio:.5},
+Coleottero:{Fuoco:.5,Erba:2,Lotta:.5,Veleno:.5,Volante:.5,Psico:2,Spettro:.5,Buio:2,Acciaio:.5,Folletto:.5},
+Roccia:{Fuoco:2,Ghiaccio:2,Lotta:.5,Terra:.5,Volante:2,Coleottero:2,Acciaio:.5},
+Spettro:{Normale:0,Psico:2,Spettro:2,Buio:.5},
+Drago:{Drago:2,Acciaio:.5,Folletto:0},
+Buio:{Lotta:.5,Psico:2,Spettro:2,Buio:.5,Folletto:.5},
+Acciaio:{Fuoco:.5,Acqua:.5,Elettro:.5,Ghiaccio:2,Roccia:2,Acciaio:.5,Folletto:2},
+Folletto:{Fuoco:.5,Lotta:2,Veleno:.5,Drago:2,Buio:2,Acciaio:.5}
+};
+const chip=t=>`<span class="type" style="background:${C[t]}">${t}</span>`;
+document.getElementById("typeList").innerHTML=T.map(chip).join("");
+
+function mult(att,d1,d2){
+  let m=(E[att][d1]??1);
+  if(d2&&d2!==d1)m*=(E[att][d2]??1);
+  return m;
+}
+const t1=document.getElementById("t1"),t2=document.getElementById("t2");
+T.forEach(t=>{t1.add(new Option(t,t));t2.add(new Option(t,t));});
+t2.insertBefore(new Option("— nessuno —",""),t2.firstChild);
+t1.value="Fuoco";t2.value="Volante";
+function showTypes(){
+  const a=t1.value,b=t2.value;
+  const groups=[[4,"x4 (debolezza doppia)","x4"],[2,"x2","x2"],[1,"x1","h"],[.5,"x0,5","h"],[.25,"x0,25 (resistenza doppia)","q"],[0,"x0 (immune)","z"]];
+  let html=`<div class="box">Difensore: ${chip(a)}${b?chip(b):""}</div>`;
+  groups.forEach(([v,label])=>{
+    const l=T.filter(t=>mult(t,a,b)===v);
+    html+=`<div class="row"><b>${label}</b>${l.length?l.map(chip).join(""):'<span class="muted">—</span>'}</div>`;
+  });
+  document.getElementById("result").innerHTML=html;
+}
+t1.onchange=t2.onchange=showTypes;showTypes();
+
+// tabella completa
+let h="<tr><th></th>"+T.map(t=>`<th title="${t}" style="background:${C[t]};color:#fff">${t.slice(0,3)}</th>`).join("")+"</tr>";
+T.forEach(a=>{
+  h+=`<tr><th style="background:${C[a]};color:#fff;text-align:left">${a}</th>`;
+  T.forEach(d=>{
+    const m=E[a][d]??1;
+    h+=m===2?'<td class="cell2">2</td>':m===.5?'<td class="cellh">½</td>':m===0?'<td class="cell0">0</td>':"<td></td>";
+  });
+  h+="</tr>";
+});
+document.getElementById("chart").innerHTML=h;
+
+// nature
+const S=["Attacco","Difesa","Velocità","Att. Sp.","Dif. Sp."];
+const N=[
+["Ardita","Schiva","Audace","Decisa","Birbona"],
+["Sicura","Docile","Placida","Scaltra","Fiacca"],
+["Timida","Lesta","Seria","Allegra","Ingenua"],
+["Modesta","Mite","Quieta","Ritrosa","Ardente"],
+["Calma","Gentile","Vivace","Cauta","Furba"]
+];
+// colonne e righe: ordine Att, Dif, Vel, AttSp, DifSp
+// la matrice sopra è nell'ordine: Att, Dif, Vel, AttSp, DifSp per riga (aumentata) e colonna (diminuita)
+let nh="<tr><th>+ \\ −</th>"+S.map(s=>`<th>${s}</th>`).join("")+"</tr>";
+N.forEach((row,i)=>{
+  nh+=`<tr><th>${S[i]}</th>`+row.map((n,j)=>`<td${i===j?' style="opacity:.55"':''}>${n}${i===j?" (neutra)":""}</td>`).join("")+"</tr>";
+});
+document.getElementById("natTable").innerHTML=nh;
+
+const cNat=document.getElementById("cNat");
+cNat.add(new Option("Neutra (es. Seria)","-1,-1"));
+N.forEach((row,i)=>row.forEach((n,j)=>{if(i!==j)cNat.add(new Option(`${n} (+${S[i]} −${S[j]})`,`${i},${j}`));}));
+// mappa indici natura -> indici calcolatore (1=Att,2=Dif,3=Vel,4=AttSp,5=DifSp)
+const mapIdx=[1,2,3,4,5];
+function calc(){
+  const st=+document.getElementById("cStat").value,
+    b=+cBase.value||0,iv=Math.min(31,Math.max(0,+cIV.value||0)),
+    ev=Math.min(252,Math.max(0,+cEV.value||0)),lv=Math.min(100,Math.max(1,+cLv.value||1));
+  let out;
+  const core=Math.floor((2*b+iv+Math.floor(ev/4))*lv/100);
+  if(st===0){out=core+lv+10;}
+  else{
+    const [u,d]=cNat.value.split(",").map(Number);
+    let nm=1;
+    // ordine calcolatore: 1 Att,2 Dif,3 Vel,4 AttSp,5 DifSp ; stesso ordine della matrice
+    if(u>=0){ if(st===mapIdx[u])nm=1.1; if(st===mapIdx[d])nm=0.9; }
+    out=Math.floor((core+5)*nm);
+  }
+  document.getElementById("cOut").textContent=out;
+}
+["cStat","cBase","cIV","cEV","cLv","cNat"].forEach(id=>document.getElementById(id).addEventListener("input",calc));
+calc();
+</script>
+</body>
+</html>
