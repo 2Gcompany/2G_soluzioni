@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>For Honor – Parry Trainer</title>
+<style>
+  :root { --bg:#101010; --fg:#d8d8d8; --muted:#8a8f96; --blue:#2e9bff; --red:#ff3b3b; --ok:#3dff7a; --warn:#ffd23d; }
+  * { box-sizing:border-box; }
+  html,body { height:100%; margin:0; }
+  body { background:var(--bg); color:var(--fg); font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+         display:flex; flex-direction:column; align-items:center; justify-content:space-between;
+         padding:12px; user-select:none; -webkit-user-select:none; overflow:hidden; cursor:crosshair; }
+  h1 { margin:0; font-size:1rem; letter-spacing:.15em; text-transform:uppercase; color:var(--muted); font-weight:600; }
+  #msg { height:2.2rem; font-size:1.7rem; font-weight:800; text-align:center; line-height:2.2rem; }
+  svg { height:58vh; aspect-ratio:800/870; max-width:96vw; overflow:visible; }
+  .tint { fill:var(--blue); opacity:0; transition:opacity .06s; }
+  .active .tint { opacity:.65; }
+  .active { filter:drop-shadow(0 0 14px rgba(46,155,255,.8)); }
+  .atk { fill:var(--red); stroke:var(--red); stroke-width:7; stroke-linejoin:round; }
+  #stats { font-size:.95rem; color:var(--fg); text-align:center; }
+  #stats b { color:#fff; }
+  .panel { display:flex; gap:24px; flex-wrap:wrap; justify-content:center; font-size:.85rem; color:var(--muted); cursor:default; }
+  .panel label { display:flex; flex-direction:column; gap:4px; min-width:230px; }
+  input[type=range] { width:100%; accent-color:var(--blue); }
+</style>
+</head>
+<body>
+  <h1>For Honor · Parry Trainer</h1>
+  <div id="msg">Muovi il mouse per cambiare guardia</div>
+
+  <svg id="shield" viewBox="-24 0 800 870" xmlns="http://www.w3.org/2000/svg">
+    <defs>
+      <!-- metà sinistra della sezione alta (la destra è lo specchio) -->
+      <path id="pTop" d="M376,12 C352,85 300,128 232,148 L22,236 L93,258 L102,277 L96,284 C180,222 290,188 376,187 Z"/>
+      <!-- sezione sinistra (la destra è lo specchio) -->
+      <path id="pLeft" d="M14,244 L96,284 C106,350 116,420 128,482 C140,540 160,572 195,625 C245,700 305,748 358,778 L372,764 L372,852 C250,770 120,690 5,652 C52,610 66,545 54,495 C42,430 28,330 14,244 Z"/>
+      <clipPath id="lowClip"><polygon points="175,555 -10,660 -10,900 380,900 380,555"/></clipPath>
+    </defs>
+
+    <!-- sezione ALTA -->
+    <g id="sec-top">
+      <use href="#pTop" fill="#a2a2a2"/>
+      <use href="#pTop" fill="#c2c2c2" transform="translate(752,0) scale(-1,1)"/>
+      <use href="#pTop" class="tint"/>
+      <use href="#pTop" class="tint" transform="translate(752,0) scale(-1,1)"/>
+    </g>
+    <!-- sezione SINISTRA -->
+    <g id="sec-left">
+      <use href="#pLeft" fill="#bcbcbc"/>
+      <use href="#pLeft" fill="#7a7a7a" clip-path="url(#lowClip)"/>
+      <use href="#pLeft" class="tint"/>
+    </g>
+    <!-- sezione DESTRA -->
+    <g id="sec-right" transform="translate(752,0) scale(-1,1)">
+      <use href="#pLeft" fill="#c0c0c0"/>
+      <use href="#pLeft" fill="#7a7a7a" clip-path="url(#lowClip)"/>
+      <use href="#pLeft" class="tint"/>
+    </g>
+
+    <!-- indicatore d’attacco: si restringe sulla sezione colpita -->
+    <g id="atkWrap">
+      <g id="atk-top" display="none">
+        <use href="#pTop" class="atk"/>
+        <use href="#pTop" class="atk" transform="translate(752,0) scale(-1,1)"/>
+      </g>
+      <g id="atk-left" display="none"><use href="#pLeft" class="atk"/></g>
+      <g id="atk-right" display="none" transform="translate(752,0) scale(-1,1)"><use href="#pLeft" class="atk"/></g>
+    </g>
+  </svg>
+
+  <div id="stats"></div>
+
+  <div class="panel">
+    <label>Tempo di arrivo dell’attacco: <b id="vSpeed">700 ms</b>
+      <input id="speed" type="range" min="100" max="1200" step="10" value="700"></label>
+    <label>Finestra di parry ±<b id="vWin">150 ms</b>
+      <input id="win" type="range" min="20" max="300" step="10" value="150"></label>
+    <label><span><span id="gapLabel">Pausa tra attacchi</span>: <b id="vGap">800 ms</b></span>
+      <input id="gap" type="range" min="100" max="2000" step="50" value="800">
+      <span><input id="rnd" type="checkbox"> Pausa casuale (tra 100 ms e il valore impostato)</span></label>
+  </div>
+
+<script>
+(() => {
+  const CX = 376, CY = 480;
+  const svg = document.getElementById('shield');
+  const secs = { top:document.getElementById('sec-top'), left:document.getElementById('sec-left'), right:document.getElementById('sec-right') };
+  const atks = { top:document.getElementById('atk-top'), left:document.getElementById('atk-left'), right:document.getElementById('atk-right') };
+  const wrap = document.getElementById('atkWrap');
+  const msg = document.getElementById('msg'), stats = document.getElementById('stats');
+  const speed = document.getElementById('speed'), win = document.getElementById('win'), gap = document.getElementById('gap'), rnd = document.getElementById('rnd'), gapLabel = document.getElementById('gapLabel');
+  const vSpeed = document.getElementById('vSpeed'), vWin = document.getElementById('vWin'), vGap = document.getElementById('vGap');
+
+  let guard = null;
+  function setGuard(g) {
+    if (g === guard) return;
+    guard = g;
+    for (const k in secs) secs[k].classList.toggle('active', k === g);
+  }
+  setGuard('top');
+
+  // Il mouse seleziona la guardia in base all’angolo rispetto al centro del reticolo
+  function updateGuard(e) {
+    const r = svg.getBoundingClientRect();
+    const cx = r.left + r.width / 2, cy = r.top + r.height * (CY / 870);
+    const dx = e.clientX - cx, dy = e.clientY - cy;
+    if (Math.hypot(dx, dy) < r.width * 0.04) return;      // zona morta al centro
+    const a = Math.atan2(-dy, dx) * 180 / Math.PI;        // -180..180, 0 = destra
+    if (a > 37 && a < 143) setGuard('top');
+    else if (a > -90 && a <= 37) setGuard('right');
+    else setGuard('left');
+  }
+
+  // ---- gioco ----
+  let state = 'idle', nextAt = performance.now() + 1000;
+  let dir, tStart, tImpact, guardAtImpact, clicks = [];
+  let parries = 0, blocks = 0, hits = 0, streak = 0, best = 0, msgUntil = 0;
+
+  function showMsg(t, color) { msg.textContent = t; msg.style.color = color; msgUntil = performance.now() + 1300; }
+  function renderStats() {
+    stats.innerHTML = `Parry <b>${parries}</b> · Bloccati <b>${blocks}</b> · Colpi subiti <b>${hits}</b> · Serie <b>${streak}</b> · Record <b>${best}</b>`;
+  }
+
+  function startAttack(now) {
+    dir = ['top', 'left', 'right'][Math.floor(Math.random() * 3)];
+    tStart = now; tImpact = now + +speed.value; guardAtImpact = null; clicks = [];
+    for (const k in atks) atks[k].setAttribute('display', k === dir ? 'inline' : 'none');
+    state = 'attack';
+  }
+
+  function resolve() {
+    const w = +win.value;
+    const parried = clicks.some(c => Math.abs(c.t - tImpact) <= w && c.g === dir);
+    if (parried) {
+      parries++; streak++; best = Math.max(best, streak);
+      showMsg('PARRY!', 'var(--ok)');
+    } else {
+      streak = 0;
+      if (guardAtImpact === dir) {
+        blocks++;
+        if (clicks.length) {
+          const d = clicks[clicks.length - 1].t - tImpact;
+          showMsg(d < 0 ? 'Bloccato – click troppo presto' : 'Bloccato – click troppo tardi', 'var(--warn)');
+        } else showMsg('Bloccato – nessun click', 'var(--warn)');
+      } else { hits++; showMsg('COLPITO! Guardia sbagliata', 'var(--red)'); }
+    }
+    atks[dir].setAttribute('display', 'none');
+    state = 'idle'; nextAt = performance.now() + (rnd.checked ? 100 + Math.random() * (+gap.value - 100) : +gap.value);
+    renderStats();
+  }
+
+  function frame(now) {
+    requestAnimationFrame(frame);           // il ciclo viene riprogrammato per primo: non si ferma mai
+    try { tick(now); } catch (err) {        // in caso di errore si riparte con un nuovo attacco
+      console.error(err);
+      for (const k in atks) atks[k].setAttribute('display', 'none');
+      state = 'idle'; nextAt = performance.now() + 500;
+    }
+  }
+
+  function tick(now) {
+    if (state === 'idle' && now >= nextAt) startAttack(now);
+    if (state === 'attack') {
+      const p = Math.min(1, (now - tStart) / (tImpact - tStart));
+      const s = 1 + 0.45 * (1 - p);
+      wrap.setAttribute('transform', `translate(${CX} ${CY}) scale(${s}) translate(${-CX} ${-CY})`);
+      wrap.style.setProperty('--p', p);
+      for (const el of atks[dir].querySelectorAll('.atk')) {
+        el.style.fillOpacity = 0.05 + 0.55 * p * p;
+        el.style.strokeOpacity = 0.5 + 0.5 * p;
+      }
+      if (guardAtImpact === null && now >= tImpact) guardAtImpact = guard;
+      if (now >= tImpact + +win.value) resolve();
+    }
+    if (now > msgUntil) {
+      const hint = 'Guardia: mouse · Parry: tasto destro';
+      if (msg.textContent !== hint) { msg.textContent = hint; msg.style.color = 'var(--muted)'; }
+    }
+  }
+
+  addEventListener('pointermove', updateGuard);
+  addEventListener('pointerdown', e => {
+    if (e.target.closest('.panel')) return;
+    if (e.button !== 2 && e.pointerType !== 'touch') return;   // parry = tasto destro
+    updateGuard(e);
+    if (state === 'attack') clicks.push({ t: performance.now(), g: guard });
+  });
+  addEventListener('contextmenu', e => e.preventDefault());
+  speed.addEventListener('input', () => vSpeed.textContent = speed.value + ' ms');
+  win.addEventListener('input', () => vWin.textContent = win.value + ' ms');
+  gap.addEventListener('input', () => vGap.textContent = gap.value + ' ms');
+  rnd.addEventListener('change', () => gapLabel.textContent = rnd.checked ? 'Pausa massima' : 'Pausa tra attacchi');
+
+  renderStats();
+  requestAnimationFrame(frame);
+})();
+</script>
+</body>
+</html>
